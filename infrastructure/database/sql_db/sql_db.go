@@ -2,6 +2,7 @@ package sql_db
 
 import (
 	"database/sql"
+	model "escalateservice/internal/model/domain"
 	"fmt"
 	"strings"
 
@@ -52,4 +53,68 @@ func (sd *SqlDatabase) Clean() {
 	}
 
 	log.Info().Msg("Database cleaned successfully")
+}
+
+func (sd *SqlDatabase) AddUser(user *model.User) error {
+	query := `
+		INSERT INTO escalateservice.users (
+        	username
+    	) VALUES ($1)
+	`
+	err := sd.insertData(query, user.Username)
+
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to create user, username: %s", user.Username)
+		return err
+	}
+
+	log.Info().Msgf("User created successfully, username: %s", user.Username)
+	return nil
+}
+
+func (sd *SqlDatabase) GetUser(username string) (*model.User, error) {
+	query := `
+		SELECT 
+			username
+		FROM escalateservice.users
+		WHERE username = $1
+	`
+
+	var user model.User
+	err := sd.Client.QueryRow(query, username).Scan(&user.Username)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // No review found with the given ID
+		}
+		log.Error().Stack().Err(err).Msgf("Get user by username %s failed", username)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (sd *SqlDatabase) insertData(query string, args ...any) error {
+	tx, err := sd.Client.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	_, err = tx.Exec(
+		query,
+		args...)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

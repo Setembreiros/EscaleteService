@@ -6,6 +6,9 @@ import (
 	"escalateservice/infrastructure/kafka"
 	"escalateservice/internal/api"
 	"escalateservice/internal/bus"
+	database "escalateservice/internal/db"
+	"escalateservice/internal/handler/user_created"
+	"escalateservice/internal/model/event"
 )
 
 type Provider struct {
@@ -45,8 +48,12 @@ func (p *Provider) ProvideApiControllers(sqlClient *sql_db.SqlDatabase, bus *bus
 	return []api.Controller{}
 }
 
-func (p *Provider) ProvideSubscriptions(database *sql_db.SqlDatabase) *[]bus.EventSubscription {
-	return &[]bus.EventSubscription{}
+func (p *Provider) ProvideSubscriptions(sqlClient *sql_db.SqlDatabase) *[]bus.EventSubscription {
+	return &[]bus.EventSubscription{
+		{
+			EventType: event.UserWasRegisteredEventName,
+			Handler:   user_created.NewUserWasRegisteredEventHandler(user_created.NewUserCreatedService(user_created.NewUserCreatedRepository(database.NewDatabase(sqlClient)))),
+		}}
 }
 
 func (p *Provider) ProvideKafkaConsumer(eventBus *bus.EventBus) (*kafka.KafkaConsumer, error) {
