@@ -94,6 +94,50 @@ func (sd *SqlDatabase) GetUser(username string) (*model.User, error) {
 	return &user, nil
 }
 
+func (sd *SqlDatabase) AddPost(post *model.Post) error {
+	query := `
+		INSERT INTO escalateservice.posts (
+			post_id,
+        	username
+    	) VALUES ($1, $2)
+	`
+	err := sd.insertData(query, post.PostId, post.Username)
+
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to create post, postId: %s", post.PostId)
+		return err
+	}
+
+	log.Info().Msgf("Post created successfully, postId: %s", post.PostId)
+	return nil
+}
+
+func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
+	query := `
+		SELECT 
+			post_id,
+        	username
+		FROM escalateservice.posts
+		WHERE post_id = $1
+	`
+
+	var post model.Post
+	err := sd.Client.QueryRow(query, postId).Scan(
+		&post.PostId,
+		&post.Username,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // No review found with the given ID
+		}
+		log.Error().Stack().Err(err).Msgf("Get post by postId %s failed", postId)
+		return nil, err
+	}
+
+	return &post, nil
+}
+
 func (sd *SqlDatabase) insertData(query string, args ...any) error {
 	tx, err := sd.Client.Begin()
 	if err != nil {

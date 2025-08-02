@@ -34,6 +34,20 @@ func (m *MockDatabaseClient) EXPECT() *MockDatabaseClientMockRecorder {
 	return m.recorder
 }
 
+// AddPost mocks base method.
+func (m *MockDatabaseClient) AddPost(post *model.Post) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddPost", post)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddPost indicates an expected call of AddPost.
+func (mr *MockDatabaseClientMockRecorder) AddPost(post interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPost", reflect.TypeOf((*MockDatabaseClient)(nil).AddPost), post)
+}
+
 // AddUser mocks base method.
 func (m *MockDatabaseClient) AddUser(user *model.User) error {
 	m.ctrl.T.Helper()
@@ -58,6 +72,21 @@ func (m *MockDatabaseClient) Clean() {
 func (mr *MockDatabaseClientMockRecorder) Clean() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clean", reflect.TypeOf((*MockDatabaseClient)(nil).Clean))
+}
+
+// GetPost mocks base method.
+func (m *MockDatabaseClient) GetPost(postId string) (*model.Post, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPost", postId)
+	ret0, _ := ret[0].(*model.Post)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPost indicates an expected call of GetPost.
+func (mr *MockDatabaseClientMockRecorder) GetPost(postId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost", reflect.TypeOf((*MockDatabaseClient)(nil).GetPost), postId)
 }
 
 // GetUser mocks base method.

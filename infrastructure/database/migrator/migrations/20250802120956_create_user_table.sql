@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 CREATE TABLE escalateservice.users (
-    username VARCHAR(255) NOT NULL  
+    username VARCHAR(255) PRIMARY KEY
 );
 -- +goose StatementEnd
 

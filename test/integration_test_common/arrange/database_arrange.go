@@ -3,6 +3,9 @@ package integration_test_arrange
 import (
 	"escalateservice/cmd/provider"
 	database "escalateservice/internal/db"
+	model "escalateservice/internal/model/domain"
+	integration_test_assert "escalateservice/test/integration_test_common/assert"
+	"testing"
 )
 
 func CreateTestDatabase() *database.Database {
@@ -12,4 +15,20 @@ func CreateTestDatabase() *database.Database {
 		panic(err)
 	}
 	return database.NewDatabase(sqlDb)
+}
+
+func AddUser(t *testing.T, user *model.User) {
+	provider := provider.NewProvider("test", "postgres://postgres:artis@localhost:5432/artis?search_path=public&sslmode=disable")
+	sqlDb, err := provider.ProvideDb()
+	if err != nil {
+		panic(err)
+	}
+	database := database.NewDatabase(sqlDb)
+
+	err = database.Client.AddUser(user)
+	if err != nil {
+		panic(err)
+	}
+
+	integration_test_assert.AssertUserExists(t, database, user.Username, user)
 }

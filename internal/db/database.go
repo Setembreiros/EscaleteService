@@ -16,6 +16,8 @@ type DatabaseClient interface {
 	Clean()
 	AddUser(user *model.User) error
 	GetUser(username string) (*model.User, error)
+	AddPost(post *model.Post) error
+	GetPost(postId string) (*model.Post, error)
 }
 
 func NewDatabase(client DatabaseClient) *Database {
