@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"escalateservice/infrastructure/database/migrator"
 	"escalateservice/infrastructure/database/sql_db"
 	"escalateservice/infrastructure/kafka"
 	"escalateservice/internal/api"
@@ -17,6 +18,10 @@ func NewProvider(env, connStr string) *Provider {
 		env:     env,
 		connStr: connStr,
 	}
+}
+
+func (p *Provider) ProvideGooseCLient() (*migrator.GooseClient, error) {
+	return migrator.NewGooseClient(p.connStr)
 }
 
 func (p *Provider) ProvideDb() (*sql_db.SqlDatabase, error) {

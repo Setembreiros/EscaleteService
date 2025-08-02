@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"escalateservice/cmd/provider"
+	"escalateservice/infrastructure/database/migrator"
 	"escalateservice/infrastructure/kafka"
 	"escalateservice/internal/api"
 	"escalateservice/internal/bus"
@@ -33,6 +34,10 @@ func (app *App) startup() {
 
 	provider := provider.NewProvider(app.Env, app.ConnStr)
 
+	migrator, err := provider.ProvideGooseCLient()
+	if err != nil {
+		os.Exit(1)
+	}
 	database, err := provider.ProvideDb()
 	if err != nil {
 		os.Exit(1)
@@ -49,7 +54,7 @@ func (app *App) startup() {
 		os.Exit(1)
 	}
 
-	app.runConfigurationTasks(subscriptions, eventBus)
+	app.runConfigurationTasks(migrator, subscriptions, eventBus)
 	app.runServerTasks(kafkaConsumer, apiEnpoint)
 }
 
@@ -65,10 +70,20 @@ func (app *App) configuringLog() {
 	log.Logger = log.With().Caller().Logger()
 }
 
-func (app *App) runConfigurationTasks(subscriptions *[]bus.EventSubscription, eventBus *bus.EventBus) {
-	app.configuringTasks.Add(1)
+func (app *App) runConfigurationTasks(gooseCLient *migrator.GooseClient, subscriptions *[]bus.EventSubscription, eventBus *bus.EventBus) {
+	app.configuringTasks.Add(2)
+	go app.applyMigrations(gooseCLient)
 	go app.subcribeEvents(subscriptions, eventBus) // Always subscribe event before init Kafka
 	app.configuringTasks.Wait()
+}
+
+func (app *App) applyMigrations(gooseCLient *migrator.GooseClient) {
+	defer app.configuringTasks.Done()
+
+	err := gooseCLient.ApplyMigrations(app.Ctx)
+	if err != nil {
+		log.Fatal().Stack().Err(err).Msgf("Failed to apply migrations")
+	}
 }
 
 func (app *App) runServerTasks(kafkaConsumer *kafka.KafkaConsumer, apiEnpoint *api.Api) {
