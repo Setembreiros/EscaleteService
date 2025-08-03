@@ -5,4 +5,5 @@ var tables = []string{
 	"posts",
 	"reviews",
 	"likePosts",
+	"superlikePosts",
 }

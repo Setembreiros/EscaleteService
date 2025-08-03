@@ -259,6 +259,50 @@ func (sd *SqlDatabase) RemoveLikePost(likePost *model.LikePost) error {
 	return nil
 }
 
+func (sd *SqlDatabase) AddSuperlikePost(superlikePost *model.SuperlikePost) error {
+	query := `
+		INSERT INTO escalateservice.superlikePosts (
+			username,
+			post_id
+    	) VALUES ($1, $2)
+	`
+	err := sd.insertData(query, superlikePost.Username, superlikePost.PostId)
+
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to create superlikePost, username: %s -> post %s", superlikePost.Username, superlikePost.PostId)
+		return err
+	}
+
+	log.Info().Msgf("SuperlikePost created successfully, username: %s -> post %s", superlikePost.Username, superlikePost.PostId)
+	return nil
+}
+
+func (sd *SqlDatabase) GetSuperlikePost(username, postId string) (*model.SuperlikePost, error) {
+	query := `
+		SELECT 
+    		username,
+    		post_id
+		FROM escalateservice.superlikePosts
+		WHERE username = $1 AND post_id = $2
+	`
+
+	var superlikePost model.SuperlikePost
+	err := sd.Client.QueryRow(query, username, postId).Scan(
+		&superlikePost.Username,
+		&superlikePost.PostId,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // No superlikePost found with the given username and postId
+		}
+		log.Error().Stack().Err(err).Msgf("Get superlikePost by username %s and postId %s failed", username, postId)
+		return nil, err
+	}
+
+	return &superlikePost, nil
+}
+
 func (sd *SqlDatabase) insertData(query string, args ...any) error {
 	tx, err := sd.Client.Begin()
 	if err != nil {

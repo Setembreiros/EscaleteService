@@ -23,6 +23,8 @@ type DatabaseClient interface {
 	AddLikePost(likePost *model.LikePost) error
 	GetLikePost(username, postId string) (*model.LikePost, error)
 	RemoveLikePost(likePost *model.LikePost) error
+	AddSuperlikePost(likePost *model.SuperlikePost) error
+	GetSuperlikePost(username, postId string) (*model.SuperlikePost, error)
 }
 
 func NewDatabase(client DatabaseClient) *Database {

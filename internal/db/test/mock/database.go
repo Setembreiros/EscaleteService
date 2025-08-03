@@ -76,6 +76,20 @@ func (mr *MockDatabaseClientMockRecorder) AddReview(review interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddReview", reflect.TypeOf((*MockDatabaseClient)(nil).AddReview), review)
 }
 
+// AddSuperlikePost mocks base method.
+func (m *MockDatabaseClient) AddSuperlikePost(likePost *model.SuperlikePost) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddSuperlikePost", likePost)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddSuperlikePost indicates an expected call of AddSuperlikePost.
+func (mr *MockDatabaseClientMockRecorder) AddSuperlikePost(likePost interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSuperlikePost", reflect.TypeOf((*MockDatabaseClient)(nil).AddSuperlikePost), likePost)
+}
+
 // AddUser mocks base method.
 func (m *MockDatabaseClient) AddUser(user *model.User) error {
 	m.ctrl.T.Helper()
@@ -145,6 +159,21 @@ func (m *MockDatabaseClient) GetReview(reviewId uint64) (*model.Review, error) {
 func (mr *MockDatabaseClientMockRecorder) GetReview(reviewId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReview", reflect.TypeOf((*MockDatabaseClient)(nil).GetReview), reviewId)
+}
+
+// GetSuperlikePost mocks base method.
+func (m *MockDatabaseClient) GetSuperlikePost(username, postId string) (*model.SuperlikePost, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSuperlikePost", username, postId)
+	ret0, _ := ret[0].(*model.SuperlikePost)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSuperlikePost indicates an expected call of GetSuperlikePost.
+func (mr *MockDatabaseClientMockRecorder) GetSuperlikePost(username, postId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSuperlikePost", reflect.TypeOf((*MockDatabaseClient)(nil).GetSuperlikePost), username, postId)
 }
 
 // GetUser mocks base method.
