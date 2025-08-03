@@ -1,4 +1,4 @@
-package integration_test_arrange
+package e2e_test_arrange
 
 import (
 	"escalateservice/cmd/startup"
@@ -18,14 +18,9 @@ func CreateTestDatabase() *database.Database {
 }
 
 func AddUser(t *testing.T, user *model.User) {
-	provider := startup.NewProvider("test", "postgres://postgres:artis@localhost:5432/artis?search_path=public&sslmode=disable")
-	sqlDb, err := provider.ProvideDb()
-	if err != nil {
-		panic(err)
-	}
-	database := database.NewDatabase(sqlDb)
+	database := CreateTestDatabase()
 
-	err = database.Client.AddUser(user)
+	err := database.Client.AddUser(user)
 	if err != nil {
 		panic(err)
 	}
@@ -34,14 +29,9 @@ func AddUser(t *testing.T, user *model.User) {
 }
 
 func AddPost(t *testing.T, post *model.Post) {
-	provider := startup.NewProvider("test", "postgres://postgres:artis@localhost:5432/artis?search_path=public&sslmode=disable")
-	sqlDb, err := provider.ProvideDb()
-	if err != nil {
-		panic(err)
-	}
-	database := database.NewDatabase(sqlDb)
+	database := CreateTestDatabase()
 
-	err = database.Client.AddPost(post)
+	err := database.Client.AddPost(post)
 	if err != nil {
 		panic(err)
 	}

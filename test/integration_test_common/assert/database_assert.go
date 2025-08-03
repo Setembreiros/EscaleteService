@@ -20,3 +20,12 @@ func AssertPostExists(t *testing.T, db *database.Database, postId string, expect
 	assert.Equal(t, expectedPost.PostId, post.PostId)
 	assert.Equal(t, expectedPost.Username, post.Username)
 }
+
+func AssertReviewExists(t *testing.T, db *database.Database, reviewId uint64, expectedReview *model.Review) {
+	review, err := db.Client.GetReview(reviewId)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedReview.ReviewId, review.ReviewId)
+	assert.Equal(t, expectedReview.PostId, review.PostId)
+	assert.Equal(t, expectedReview.Reviewer, review.Reviewer)
+	assert.Equal(t, expectedReview.Rating, review.Rating)
+}

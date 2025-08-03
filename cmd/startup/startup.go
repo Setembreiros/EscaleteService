@@ -1,4 +1,4 @@
-package main
+package startup
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"sync"
 	"syscall"
 
-	"escalateservice/cmd/provider"
 	"escalateservice/infrastructure/database/migrator"
 	"escalateservice/infrastructure/kafka"
 	"escalateservice/internal/api"
@@ -26,13 +25,12 @@ type App struct {
 	runningTasks     sync.WaitGroup
 }
 
-func (app *App) startup() {
+func (app *App) Startup() {
 	app.configuringLog()
 
 	log.Info().Msgf("Starting EscalateService service in [%s] enviroment...\n", app.Env)
-	log.Info().Msgf("Starting EscalateService service in [%s] enviroment...\n", app.ConnStr)
 
-	provider := provider.NewProvider(app.Env, app.ConnStr)
+	provider := NewProvider(app.Env, app.ConnStr)
 
 	migrator, err := provider.ProvideGooseCLient()
 	if err != nil {
@@ -93,7 +91,7 @@ func (app *App) runServerTasks(kafkaConsumer *kafka.KafkaConsumer, apiEnpoint *a
 
 	blockForever()
 
-	app.shutdown()
+	app.Shutdown()
 }
 
 func (app *App) subcribeEvents(subscriptions *[]bus.EventSubscription, eventBus *bus.EventBus) {
@@ -135,7 +133,7 @@ func blockForever() {
 	<-signalCh
 }
 
-func (app *App) shutdown() {
+func (app *App) Shutdown() {
 	app.Cancel()
 	log.Info().Msg("Shutting down escalateService Service...")
 	app.runningTasks.Wait()

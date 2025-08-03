@@ -44,18 +44,25 @@ func NewGooseClient(connStr string) (*GooseClient, error) {
 	}
 
 	// Directorio de migracións goose
-	workdir := filepath.Join(".", "infrastructure", "database", "migrator", "migrations")
-	if fi, err := os.Stat(workdir); err != nil || !fi.IsDir() {
-		log.Error().Stack().Msgf("migrations dir not found: %s", workdir)
-		return nil, fmt.Errorf("migrations dir not found: %s", workdir)
+	rootDir, err := findProjectRoot("EscalateService")
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to locate EscalateService root")
+		return nil, err
+	}
+
+	migrationPath := filepath.Join(rootDir, "infrastructure", "database", "migrator", "migrations")
+	if fi, err := os.Stat(migrationPath); err != nil || !fi.IsDir() {
+		cwd, _ := os.Getwd()
+		log.Error().Stack().Msgf("migrations dir not found: %s, current directory: %s", migrationPath, cwd)
+		return nil, fmt.Errorf("migrations dir not found: %s", migrationPath)
 	}
 
 	// Configura goose
-	goose.SetBaseFS(os.DirFS(workdir))
+	goose.SetBaseFS(os.DirFS(migrationPath))
 
 	return &GooseClient{
 		db:      db,
-		workdir: workdir,
+		workdir: migrationPath,
 		connStr: connStr,
 	}, nil
 }
@@ -82,4 +89,26 @@ func (gc *GooseClient) ApplyMigrations(ctx context.Context) error {
 
 	log.Info().Msg("Migrations applied successfully")
 	return nil
+}
+
+func findProjectRoot(targetDirName string) (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("failed to get current working directory: %w", err)
+	}
+
+	for {
+		base := filepath.Base(cwd)
+		if base == targetDirName {
+			return cwd, nil
+		}
+
+		parent := filepath.Dir(cwd)
+		if parent == cwd {
+			break // chegamos ao root do sistema de ficheiros
+		}
+		cwd = parent
+	}
+
+	return "", fmt.Errorf("directory %s not found in parent paths", targetDirName)
 }

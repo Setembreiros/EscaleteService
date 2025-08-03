@@ -1,4 +1,4 @@
-package provider
+package startup
 
 import (
 	"escalateservice/infrastructure/database/migrator"
@@ -8,6 +8,7 @@ import (
 	"escalateservice/internal/bus"
 	database "escalateservice/internal/db"
 	"escalateservice/internal/handler/post_created"
+	"escalateservice/internal/handler/review_created"
 	"escalateservice/internal/handler/user_created"
 	"escalateservice/internal/model/event"
 )
@@ -46,7 +47,9 @@ func (p *Provider) ProvideApiEndpoint(sqlClient *sql_db.SqlDatabase, bus *bus.Ev
 }
 
 func (p *Provider) ProvideApiControllers(sqlClient *sql_db.SqlDatabase, bus *bus.EventBus) []api.Controller {
-	return []api.Controller{}
+	return []api.Controller{
+		api.NewPingController(),
+	}
 }
 
 func (p *Provider) ProvideSubscriptions(sqlClient *sql_db.SqlDatabase) *[]bus.EventSubscription {
@@ -59,6 +62,10 @@ func (p *Provider) ProvideSubscriptions(sqlClient *sql_db.SqlDatabase) *[]bus.Ev
 			EventType: event.PostWasCreatedEventName,
 			Handler:   post_created.NewPostWasCreatedEventHandler(post_created.NewPostCreatedService(post_created.NewPostCreatedRepository(database.NewDatabase(sqlClient)))),
 		},
+		{
+			EventType: event.ReviewWasCreatedEventName,
+			Handler:   review_created.NewReviewWasCreatedEventHandler(review_created.NewReviewCreatedService(review_created.NewReviewCreatedRepository(database.NewDatabase(sqlClient)))),
+		},
 	}
 }
 
@@ -69,7 +76,7 @@ func (p *Provider) ProvideKafkaConsumer(eventBus *bus.EventBus) (*kafka.KafkaCon
 }
 
 func (p *Provider) kafkaBrokers() []string {
-	if p.env == "development" {
+	if p.env == "development" || p.env == "test" {
 		return []string{
 			"localhost:9093",
 		}

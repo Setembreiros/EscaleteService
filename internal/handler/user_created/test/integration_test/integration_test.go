@@ -1,4 +1,4 @@
-package create_user_integration_test
+package user_created_integration_test
 
 import (
 	database "escalateservice/internal/db"
