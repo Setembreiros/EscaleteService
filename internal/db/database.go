@@ -20,6 +20,8 @@ type DatabaseClient interface {
 	GetPost(postId string) (*model.Post, error)
 	AddReview(review *model.Review) error
 	GetReview(reviewId uint64) (*model.Review, error)
+	AddLikePost(likePost *model.LikePost) error
+	GetLikePost(username, postId string) (*model.LikePost, error)
 }
 
 func NewDatabase(client DatabaseClient) *Database {

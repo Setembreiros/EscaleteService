@@ -84,3 +84,25 @@ func AssertReviewExists(t *testing.T, reviewId uint64, expectedReview *model.Rev
 	assert.Equal(t, expectedReview.Reviewer, review.Reviewer)
 	assert.Equal(t, expectedReview.Rating, review.Rating)
 }
+
+func AssertLikePostExists(t *testing.T, expectedLikePost *model.LikePost) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		likePost, err := db.Client.GetLikePost(expectedLikePost.Username, expectedLikePost.PostId)
+		if err == nil && likePost == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedLikePost.Username, likePost.Username)
+			assert.Equal(t, expectedLikePost.PostId, likePost.PostId)
+			return
+		}
+	}
+	likePost, err := db.Client.GetLikePost(expectedLikePost.Username, expectedLikePost.PostId)
+	assert.Nil(t, err)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedLikePost.Username, likePost.Username)
+	assert.Equal(t, expectedLikePost.PostId, likePost.PostId)
+}

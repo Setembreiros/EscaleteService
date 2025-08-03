@@ -188,6 +188,50 @@ func (sd *SqlDatabase) GetReview(reviewId uint64) (*model.Review, error) {
 	return &review, nil
 }
 
+func (sd *SqlDatabase) AddLikePost(likePost *model.LikePost) error {
+	query := `
+		INSERT INTO escalateservice.likePosts (
+			username,
+			post_id
+    	) VALUES ($1, $2)
+	`
+	err := sd.insertData(query, likePost.Username, likePost.PostId)
+
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to create likePost, username: %s -> post %s", likePost.Username, likePost.PostId)
+		return err
+	}
+
+	log.Info().Msgf("LikePost created successfully, username: %s -> post %s", likePost.Username, likePost.PostId)
+	return nil
+}
+
+func (sd *SqlDatabase) GetLikePost(username, postId string) (*model.LikePost, error) {
+	query := `
+		SELECT 
+    		username,
+    		post_id
+		FROM escalateservice.likePosts
+		WHERE username = $1 AND post_id = $2
+	`
+
+	var likePost model.LikePost
+	err := sd.Client.QueryRow(query, username, postId).Scan(
+		&likePost.Username,
+		&likePost.PostId,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // No likePost found with the given username and postId
+		}
+		log.Error().Stack().Err(err).Msgf("Get likePost by username %s and postId %s failed", username, postId)
+		return nil, err
+	}
+
+	return &likePost, nil
+}
+
 func (sd *SqlDatabase) insertData(query string, args ...any) error {
 	tx, err := sd.Client.Begin()
 	if err != nil {

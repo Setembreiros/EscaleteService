@@ -34,6 +34,20 @@ func (m *MockDatabaseClient) EXPECT() *MockDatabaseClientMockRecorder {
 	return m.recorder
 }
 
+// AddLikePost mocks base method.
+func (m *MockDatabaseClient) AddLikePost(likePost *model.LikePost) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddLikePost", likePost)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddLikePost indicates an expected call of AddLikePost.
+func (mr *MockDatabaseClientMockRecorder) AddLikePost(likePost interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddLikePost", reflect.TypeOf((*MockDatabaseClient)(nil).AddLikePost), likePost)
+}
+
 // AddPost mocks base method.
 func (m *MockDatabaseClient) AddPost(post *model.Post) error {
 	m.ctrl.T.Helper()
@@ -86,6 +100,21 @@ func (m *MockDatabaseClient) Clean() {
 func (mr *MockDatabaseClientMockRecorder) Clean() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clean", reflect.TypeOf((*MockDatabaseClient)(nil).Clean))
+}
+
+// GetLikePost mocks base method.
+func (m *MockDatabaseClient) GetLikePost(username, postId string) (*model.LikePost, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLikePost", username, postId)
+	ret0, _ := ret[0].(*model.LikePost)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLikePost indicates an expected call of GetLikePost.
+func (mr *MockDatabaseClientMockRecorder) GetLikePost(username, postId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLikePost", reflect.TypeOf((*MockDatabaseClient)(nil).GetLikePost), username, postId)
 }
 
 // GetPost mocks base method.

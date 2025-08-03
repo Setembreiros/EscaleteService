@@ -7,6 +7,7 @@ import (
 	"escalateservice/internal/api"
 	"escalateservice/internal/bus"
 	database "escalateservice/internal/db"
+	"escalateservice/internal/handler/like_post"
 	"escalateservice/internal/handler/post_created"
 	"escalateservice/internal/handler/review_created"
 	"escalateservice/internal/handler/user_created"
@@ -65,6 +66,10 @@ func (p *Provider) ProvideSubscriptions(sqlClient *sql_db.SqlDatabase) *[]bus.Ev
 		{
 			EventType: event.ReviewWasCreatedEventName,
 			Handler:   review_created.NewReviewWasCreatedEventHandler(review_created.NewReviewCreatedService(review_created.NewReviewCreatedRepository(database.NewDatabase(sqlClient)))),
+		},
+		{
+			EventType: event.UserLikedPostEventName,
+			Handler:   like_post.NewUserLikedPostEventHandler(like_post.NewLikePostService(like_post.NewLikePostRepository(database.NewDatabase(sqlClient)))),
 		},
 	}
 }

@@ -1,4 +1,4 @@
-package user_created_e2e_test
+package review_created_e2e_test
 
 import (
 	model "escalateservice/internal/model/domain"

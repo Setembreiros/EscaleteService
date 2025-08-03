@@ -7,5 +7,6 @@ func getTopics() []string {
 		event.UserWasRegisteredEventName,
 		event.PostWasCreatedEventName,
 		event.ReviewWasCreatedEventName,
+		event.UserLikedPostEventName,
 	}
 }
