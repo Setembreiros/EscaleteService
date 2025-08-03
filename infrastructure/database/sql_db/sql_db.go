@@ -232,6 +232,33 @@ func (sd *SqlDatabase) GetLikePost(username, postId string) (*model.LikePost, er
 	return &likePost, nil
 }
 
+func (sd *SqlDatabase) RemoveLikePost(likePost *model.LikePost) error {
+	query := `
+		DELETE FROM escalateservice.likePosts
+		WHERE username = $1 AND post_id = $2
+	`
+
+	result, err := sd.Client.Exec(query, likePost.Username, likePost.PostId)
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to remove likePost, username: %s -> post %s", likePost.Username, likePost.PostId)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to get rows affected for likePost removal, username: %s -> post %s", likePost.Username, likePost.PostId)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		log.Warn().Msgf("No likePost found to remove, username: %s -> post %s", likePost.Username, likePost.PostId)
+		return nil // No error, but no rows were affected
+	}
+
+	log.Info().Msgf("LikePost removed successfully, username: %s -> post %s", likePost.Username, likePost.PostId)
+	return nil
+}
+
 func (sd *SqlDatabase) insertData(query string, args ...any) error {
 	tx, err := sd.Client.Begin()
 	if err != nil {

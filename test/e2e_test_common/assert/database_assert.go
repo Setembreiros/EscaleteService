@@ -102,7 +102,25 @@ func AssertLikePostExists(t *testing.T, expectedLikePost *model.LikePost) {
 	}
 	likePost, err := db.Client.GetLikePost(expectedLikePost.Username, expectedLikePost.PostId)
 	assert.Nil(t, err)
-	assert.Nil(t, err)
 	assert.Equal(t, expectedLikePost.Username, likePost.Username)
 	assert.Equal(t, expectedLikePost.PostId, likePost.PostId)
+}
+
+func AssertLikePostDoesNotExist(t *testing.T, likePost *model.LikePost) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		likePost, err := db.Client.GetLikePost(likePost.Username, likePost.PostId)
+		if err != nil || likePost != nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Nil(t, likePost)
+			return
+		}
+	}
+	likePost, err := db.Client.GetLikePost(likePost.Username, likePost.PostId)
+	assert.Nil(t, err)
+	assert.Nil(t, likePost)
 }

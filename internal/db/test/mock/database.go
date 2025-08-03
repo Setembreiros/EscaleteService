@@ -161,3 +161,17 @@ func (mr *MockDatabaseClientMockRecorder) GetUser(username interface{}) *gomock.
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUser", reflect.TypeOf((*MockDatabaseClient)(nil).GetUser), username)
 }
+
+// RemoveLikePost mocks base method.
+func (m *MockDatabaseClient) RemoveLikePost(likePost *model.LikePost) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveLikePost", likePost)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveLikePost indicates an expected call of RemoveLikePost.
+func (mr *MockDatabaseClientMockRecorder) RemoveLikePost(likePost interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveLikePost", reflect.TypeOf((*MockDatabaseClient)(nil).RemoveLikePost), likePost)
+}

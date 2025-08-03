@@ -4,4 +4,5 @@ var tables = []string{
 	"users",
 	"posts",
 	"reviews",
+	"likePosts",
 }
