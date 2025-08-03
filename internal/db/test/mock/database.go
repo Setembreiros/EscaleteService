@@ -204,3 +204,17 @@ func (mr *MockDatabaseClientMockRecorder) RemoveLikePost(likePost interface{}) *
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveLikePost", reflect.TypeOf((*MockDatabaseClient)(nil).RemoveLikePost), likePost)
 }
+
+// RemoveSuperlikePost mocks base method.
+func (m *MockDatabaseClient) RemoveSuperlikePost(superlikePost *model.SuperlikePost) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveSuperlikePost", superlikePost)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveSuperlikePost indicates an expected call of RemoveSuperlikePost.
+func (mr *MockDatabaseClientMockRecorder) RemoveSuperlikePost(superlikePost interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveSuperlikePost", reflect.TypeOf((*MockDatabaseClient)(nil).RemoveSuperlikePost), superlikePost)
+}

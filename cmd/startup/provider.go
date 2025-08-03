@@ -12,6 +12,7 @@ import (
 	"escalateservice/internal/handler/review_created"
 	"escalateservice/internal/handler/superlike_post"
 	"escalateservice/internal/handler/unlike_post"
+	"escalateservice/internal/handler/unsuperlike_post"
 	"escalateservice/internal/handler/user_created"
 	"escalateservice/internal/model/event"
 )
@@ -80,6 +81,10 @@ func (p *Provider) ProvideSubscriptions(sqlClient *sql_db.SqlDatabase) *[]bus.Ev
 		{
 			EventType: event.UserSuperlikedPostEventName,
 			Handler:   superlike_post.NewUserSuperlikedPostEventHandler(superlike_post.NewSuperlikePostService(superlike_post.NewSuperlikePostRepository(database.NewDatabase(sqlClient)))),
+		},
+		{
+			EventType: event.UserUnsuperlikedPostEventName,
+			Handler:   unsuperlike_post.NewUserUnsuperlikedPostEventHandler(unsuperlike_post.NewUnsuperlikePostService(unsuperlike_post.NewUnsuperlikePostRepository(database.NewDatabase(sqlClient)))),
 		},
 	}
 }

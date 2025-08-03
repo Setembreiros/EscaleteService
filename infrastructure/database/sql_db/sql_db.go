@@ -303,6 +303,33 @@ func (sd *SqlDatabase) GetSuperlikePost(username, postId string) (*model.Superli
 	return &superlikePost, nil
 }
 
+func (sd *SqlDatabase) RemoveSuperlikePost(superlikePost *model.SuperlikePost) error {
+	query := `
+		DELETE FROM escalateservice.superlikePosts
+		WHERE username = $1 AND post_id = $2
+	`
+
+	result, err := sd.Client.Exec(query, superlikePost.Username, superlikePost.PostId)
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to remove superlikePost, username: %s -> post %s", superlikePost.Username, superlikePost.PostId)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to get rows affected for superlikePost removal, username: %s -> post %s", superlikePost.Username, superlikePost.PostId)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		log.Warn().Msgf("No superlikePost found to remove, username: %s -> post %s", superlikePost.Username, superlikePost.PostId)
+		return nil // No error, but no rows were affected
+	}
+
+	log.Info().Msgf("SuperlikePost removed successfully, username: %s -> post %s", superlikePost.Username, superlikePost.PostId)
+	return nil
+}
+
 func (sd *SqlDatabase) insertData(query string, args ...any) error {
 	tx, err := sd.Client.Begin()
 	if err != nil {

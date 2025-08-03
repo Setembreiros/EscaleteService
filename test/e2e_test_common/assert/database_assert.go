@@ -145,3 +145,22 @@ func AssertSuperlikePostExists(t *testing.T, expectedSuperlikePost *model.Superl
 	assert.Equal(t, expectedSuperlikePost.Username, superlikePost.Username)
 	assert.Equal(t, expectedSuperlikePost.PostId, superlikePost.PostId)
 }
+
+func AssertSuperlikePostDoesNotExist(t *testing.T, superlikePost *model.SuperlikePost) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		superlikePost, err := db.Client.GetSuperlikePost(superlikePost.Username, superlikePost.PostId)
+		if err != nil || superlikePost != nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Nil(t, superlikePost)
+			return
+		}
+	}
+	superlikePost, err := db.Client.GetSuperlikePost(superlikePost.Username, superlikePost.PostId)
+	assert.Nil(t, err)
+	assert.Nil(t, superlikePost)
+}
