@@ -48,6 +48,20 @@ func (mr *MockDatabaseClientMockRecorder) AddPost(post interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPost", reflect.TypeOf((*MockDatabaseClient)(nil).AddPost), post)
 }
 
+// AddReview mocks base method.
+func (m *MockDatabaseClient) AddReview(review *model.Review) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddReview", review)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddReview indicates an expected call of AddReview.
+func (mr *MockDatabaseClientMockRecorder) AddReview(review interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddReview", reflect.TypeOf((*MockDatabaseClient)(nil).AddReview), review)
+}
+
 // AddUser mocks base method.
 func (m *MockDatabaseClient) AddUser(user *model.User) error {
 	m.ctrl.T.Helper()
@@ -87,6 +101,21 @@ func (m *MockDatabaseClient) GetPost(postId string) (*model.Post, error) {
 func (mr *MockDatabaseClientMockRecorder) GetPost(postId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPost", reflect.TypeOf((*MockDatabaseClient)(nil).GetPost), postId)
+}
+
+// GetReview mocks base method.
+func (m *MockDatabaseClient) GetReview(reviewId uint64) (*model.Review, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReview", reviewId)
+	ret0, _ := ret[0].(*model.Review)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetReview indicates an expected call of GetReview.
+func (mr *MockDatabaseClientMockRecorder) GetReview(reviewId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReview", reflect.TypeOf((*MockDatabaseClient)(nil).GetReview), reviewId)
 }
 
 // GetUser mocks base method.

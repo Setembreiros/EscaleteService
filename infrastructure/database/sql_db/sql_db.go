@@ -138,6 +138,56 @@ func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
 	return &post, nil
 }
 
+func (sd *SqlDatabase) AddReview(review *model.Review) error {
+	query := `
+		INSERT INTO escalateservice.reviews (
+			review_id,
+			post_id,
+        	reviewer,
+			rating
+    	) VALUES ($1, $2, $3, $4)
+	`
+	err := sd.insertData(query, review.ReviewId, review.PostId, review.Reviewer, review.Rating)
+
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to create review, reviewId: %d", review.ReviewId)
+		return err
+	}
+
+	log.Info().Msgf("Review created successfully, reviewId: %d", review.ReviewId)
+	return nil
+}
+
+func (sd *SqlDatabase) GetReview(reviewId uint64) (*model.Review, error) {
+	query := `
+		SELECT 
+			review_id,
+			post_id,
+        	reviewer,
+			rating
+		FROM escalateservice.reviews
+		WHERE review_id = $1
+	`
+
+	var review model.Review
+	err := sd.Client.QueryRow(query, reviewId).Scan(
+		&review.ReviewId,
+		&review.PostId,
+		&review.Reviewer,
+		&review.Rating,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // No review found with the given ID
+		}
+		log.Error().Stack().Err(err).Msgf("Get post by reviewId %d failed", reviewId)
+		return nil, err
+	}
+
+	return &review, nil
+}
+
 func (sd *SqlDatabase) insertData(query string, args ...any) error {
 	tx, err := sd.Client.Begin()
 	if err != nil {
