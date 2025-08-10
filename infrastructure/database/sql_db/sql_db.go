@@ -55,6 +55,24 @@ func (sd *SqlDatabase) Clean() {
 	log.Info().Msg("Database cleaned successfully")
 }
 
+func (sd *SqlDatabase) Close() {
+	err := sd.Client.Close()
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("Failed to close the database connection")
+	} else {
+		log.Info().Msg("Database connection closed successfully")
+	}
+}
+
+func (sd *SqlDatabase) CallProcedure(name string) error {
+	query := fmt.Sprintf("CALL escalateservice.%s()", name)
+	_, err := sd.Client.Exec(query)
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to call procedure %s", name)
+	}
+	return err
+}
+
 func (sd *SqlDatabase) AddUser(user *model.User) error {
 	query := `
 		INSERT INTO escalateservice.users (
@@ -72,6 +90,30 @@ func (sd *SqlDatabase) AddUser(user *model.User) error {
 	return nil
 }
 
+func (sd *SqlDatabase) BatchAddUsers(users []*model.User) error {
+	if len(users) == 0 {
+		log.Warn().Msg("No users to batch add")
+		return nil
+	}
+	query := `
+		INSERT INTO escalateservice.users (
+			username
+		) VALUES %s
+	`
+	values := make([]string, len(users))
+	for i, user := range users {
+		values[i] = fmt.Sprintf("('%s')", user.Username)
+	}
+	query = fmt.Sprintf(query, strings.Join(values, ","))
+	_, err := sd.Client.Exec(query)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("Failed to batch add users")
+		return err
+	}
+	log.Info().Msgf("Batch added %d users successfully", len(users))
+	return nil
+}
+
 func (sd *SqlDatabase) GetUser(username string) (*model.User, error) {
 	query := `
 		SELECT 
@@ -85,7 +127,7 @@ func (sd *SqlDatabase) GetUser(username string) (*model.User, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // No review found with the given ID
+			return nil, nil
 		}
 		log.Error().Stack().Err(err).Msgf("Get user by username %s failed", username)
 		return nil, err
@@ -112,11 +154,38 @@ func (sd *SqlDatabase) AddPost(post *model.Post) error {
 	return nil
 }
 
+func (sd *SqlDatabase) BatchAddPosts(posts []*model.Post) error {
+	if len(posts) == 0 {
+		log.Warn().Msg("No posts to batch add")
+		return nil
+	}
+	query := `
+		INSERT INTO escalateservice.posts (
+			post_id,
+			username
+		) VALUES %s
+	`
+	values := make([]string, len(posts))
+	for i, post := range posts {
+		values[i] = fmt.Sprintf("('%s', '%s')", post.PostId, post.Username)
+	}
+	query = fmt.Sprintf(query, strings.Join(values, ","))
+	_, err := sd.Client.Exec(query)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("Failed to batch add posts")
+		return err
+	}
+
+	log.Info().Msgf("Batch added %d posts successfully", len(posts))
+	return nil
+}
+
 func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
 	query := `
 		SELECT 
 			post_id,
-        	username
+        	username,
+			score
 		FROM escalateservice.posts
 		WHERE post_id = $1
 	`
@@ -125,11 +194,12 @@ func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
 	err := sd.Client.QueryRow(query, postId).Scan(
 		&post.PostId,
 		&post.Username,
+		&post.Score,
 	)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // No review found with the given ID
+			return nil, nil
 		}
 		log.Error().Stack().Err(err).Msgf("Get post by postId %s failed", postId)
 		return nil, err
@@ -155,6 +225,40 @@ func (sd *SqlDatabase) AddReview(review *model.Review) error {
 	}
 
 	log.Info().Msgf("Review created successfully, reviewId: %d", review.ReviewId)
+	return nil
+}
+
+func (sd *SqlDatabase) BatchAddReviews(reviews []*model.Review) error {
+	if len(reviews) == 0 {
+		log.Warn().Msg("No reviews to batch add")
+		return nil
+	}
+
+	query := `
+		INSERT INTO escalateservice.reviews (
+			review_id,
+			post_id,
+			reviewer,
+			rating
+		) VALUES %s
+	`
+	values := make([]string, len(reviews))
+	for i, review := range reviews {
+		if review == nil {
+			log.Error().Stack().Msg("Review is null")
+			return fmt.Errorf("review is null")
+		}
+		values[i] = fmt.Sprintf("(%d, '%s', '%s', %d)", review.ReviewId, review.PostId, review.Reviewer, review.Rating)
+	}
+	query = fmt.Sprintf(query, strings.Join(values, ","))
+
+	_, err := sd.Client.Exec(query)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("Failed to batch add reviews")
+		return err
+	}
+
+	log.Info().Msgf("Batch added %d reviews successfully", len(reviews))
 	return nil
 }
 
@@ -203,6 +307,38 @@ func (sd *SqlDatabase) AddLikePost(likePost *model.LikePost) error {
 	}
 
 	log.Info().Msgf("LikePost created successfully, username: %s -> post %s", likePost.Username, likePost.PostId)
+	return nil
+}
+
+func (sd *SqlDatabase) BatchAddLikePosts(likePosts []*model.LikePost) error {
+	if len(likePosts) == 0 {
+		log.Warn().Msg("No likePosts to batch add")
+		return nil
+	}
+
+	query := `
+		INSERT INTO escalateservice.likePosts (
+			username,
+			post_id
+		) VALUES %s
+	`
+	values := make([]string, len(likePosts))
+	for i, likePost := range likePosts {
+		if likePost == nil {
+			log.Error().Stack().Msg("LikePost is null")
+			return fmt.Errorf("likePost is null")
+		}
+		values[i] = fmt.Sprintf("('%s', '%s')", likePost.Username, likePost.PostId)
+	}
+	query = fmt.Sprintf(query, strings.Join(values, ","))
+
+	_, err := sd.Client.Exec(query)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("Failed to batch add likePosts")
+		return err
+	}
+
+	log.Info().Msgf("Batch added %d likePosts successfully", len(likePosts))
 	return nil
 }
 
@@ -277,6 +413,37 @@ func (sd *SqlDatabase) AddSuperlikePost(superlikePost *model.SuperlikePost) erro
 	return nil
 }
 
+func (sd *SqlDatabase) BatchAddSuperlikePosts(superlikePosts []*model.SuperlikePost) error {
+	if len(superlikePosts) == 0 {
+		log.Warn().Msg("No superlikePosts to batch add")
+		return nil
+	}
+
+	query := `
+		INSERT INTO escalateservice.superlikePosts (
+			username,
+			post_id
+		) VALUES %s
+	`
+	values := make([]string, len(superlikePosts))
+	for i, superlikePost := range superlikePosts {
+		if superlikePost == nil {
+			log.Error().Stack().Msg("SuperlikePost is null")
+			return fmt.Errorf("superlikePost is null")
+		}
+		values[i] = fmt.Sprintf("('%s', '%s')", superlikePost.Username, superlikePost.PostId)
+	}
+	query = fmt.Sprintf(query, strings.Join(values, ","))
+	_, err := sd.Client.Exec(query)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("Failed to batch add superlikePosts")
+		return err
+	}
+
+	log.Info().Msgf("Batch added %d superlikePosts successfully", len(superlikePosts))
+	return nil
+}
+
 func (sd *SqlDatabase) GetSuperlikePost(username, postId string) (*model.SuperlikePost, error) {
 	query := `
 		SELECT 
@@ -344,13 +511,7 @@ func (sd *SqlDatabase) insertData(query string, args ...any) error {
 		}
 	}()
 
-	_, err = tx.Exec(
-		query,
-		args...)
+	_, err = tx.Exec(query, args...)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

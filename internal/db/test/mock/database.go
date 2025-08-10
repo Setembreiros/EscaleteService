@@ -104,6 +104,90 @@ func (mr *MockDatabaseClientMockRecorder) AddUser(user interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockDatabaseClient)(nil).AddUser), user)
 }
 
+// BatchAddLikePosts mocks base method.
+func (m *MockDatabaseClient) BatchAddLikePosts(likePosts []*model.LikePost) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchAddLikePosts", likePosts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchAddLikePosts indicates an expected call of BatchAddLikePosts.
+func (mr *MockDatabaseClientMockRecorder) BatchAddLikePosts(likePosts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchAddLikePosts", reflect.TypeOf((*MockDatabaseClient)(nil).BatchAddLikePosts), likePosts)
+}
+
+// BatchAddPosts mocks base method.
+func (m *MockDatabaseClient) BatchAddPosts(posts []*model.Post) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchAddPosts", posts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchAddPosts indicates an expected call of BatchAddPosts.
+func (mr *MockDatabaseClientMockRecorder) BatchAddPosts(posts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchAddPosts", reflect.TypeOf((*MockDatabaseClient)(nil).BatchAddPosts), posts)
+}
+
+// BatchAddReviews mocks base method.
+func (m *MockDatabaseClient) BatchAddReviews(reviews []*model.Review) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchAddReviews", reviews)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchAddReviews indicates an expected call of BatchAddReviews.
+func (mr *MockDatabaseClientMockRecorder) BatchAddReviews(reviews interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchAddReviews", reflect.TypeOf((*MockDatabaseClient)(nil).BatchAddReviews), reviews)
+}
+
+// BatchAddSuperlikePosts mocks base method.
+func (m *MockDatabaseClient) BatchAddSuperlikePosts(superlikePosts []*model.SuperlikePost) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchAddSuperlikePosts", superlikePosts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchAddSuperlikePosts indicates an expected call of BatchAddSuperlikePosts.
+func (mr *MockDatabaseClientMockRecorder) BatchAddSuperlikePosts(superlikePosts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchAddSuperlikePosts", reflect.TypeOf((*MockDatabaseClient)(nil).BatchAddSuperlikePosts), superlikePosts)
+}
+
+// BatchAddUsers mocks base method.
+func (m *MockDatabaseClient) BatchAddUsers(users []*model.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchAddUsers", users)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchAddUsers indicates an expected call of BatchAddUsers.
+func (mr *MockDatabaseClientMockRecorder) BatchAddUsers(users interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchAddUsers", reflect.TypeOf((*MockDatabaseClient)(nil).BatchAddUsers), users)
+}
+
+// CallProcedure mocks base method.
+func (m *MockDatabaseClient) CallProcedure(name string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CallProcedure", name)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CallProcedure indicates an expected call of CallProcedure.
+func (mr *MockDatabaseClientMockRecorder) CallProcedure(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CallProcedure", reflect.TypeOf((*MockDatabaseClient)(nil).CallProcedure), name)
+}
+
 // Clean mocks base method.
 func (m *MockDatabaseClient) Clean() {
 	m.ctrl.T.Helper()
@@ -114,6 +198,18 @@ func (m *MockDatabaseClient) Clean() {
 func (mr *MockDatabaseClientMockRecorder) Clean() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clean", reflect.TypeOf((*MockDatabaseClient)(nil).Clean))
+}
+
+// Close mocks base method.
+func (m *MockDatabaseClient) Close() {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "Close")
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockDatabaseClientMockRecorder) Close() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockDatabaseClient)(nil).Close))
 }
 
 // GetLikePost mocks base method.
