@@ -56,16 +56,22 @@ func AssertSuperlikePostDoesNotExist(t *testing.T, db *database.Database, expect
 	assert.Nil(t, superlikePost, "Superlike post should not exist")
 }
 
-func AssertPostScore(t *testing.T, db *database.Database, postId string, expectedScore int) {
-	post, err := db.Client.GetPost(postId)
-	assert.Nil(t, err, "Error should be nil when checking post score")
-	assert.NotNil(t, post, "Post should not be nil")
-	assert.Equal(t, expectedScore, post.Score, "Post score does not match expected value")
-}
-
 func AssertFollowExists(t *testing.T, db *database.Database, expectedFollow *model.Follow) {
 	follow, err := db.Client.GetFollow(expectedFollow.Follower, expectedFollow.Followee)
 	assert.Nil(t, err)
 	assert.Equal(t, expectedFollow.Follower, follow.Follower, "Follower does not match expected values")
 	assert.Equal(t, expectedFollow.Followee, follow.Followee, "Followee does not match expected values")
+}
+
+func AssertFollowDoesNotExist(t *testing.T, db *database.Database, expectedFollow *model.Follow) {
+	follow, err := db.Client.GetFollow(expectedFollow.Follower, expectedFollow.Followee)
+	assert.Nil(t, err)
+	assert.Nil(t, follow, "Follow should not exist")
+}
+
+func AssertPostScore(t *testing.T, db *database.Database, postId string, expectedScore int) {
+	post, err := db.Client.GetPost(postId)
+	assert.Nil(t, err, "Error should be nil when checking post score")
+	assert.NotNil(t, post, "Post should not be nil")
+	assert.Equal(t, expectedScore, post.Score, "Post score does not match expected value")
 }

@@ -12,5 +12,6 @@ func getTopics() []string {
 		event.UserSuperlikedPostEventName,
 		event.UserUnsuperlikedPostEventName,
 		event.UserAFollowedUserBEventName,
+		event.UserAUnfollowedUserBEventName,
 	}
 }

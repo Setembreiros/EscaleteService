@@ -497,25 +497,6 @@ func (sd *SqlDatabase) RemoveSuperlikePost(superlikePost *model.SuperlikePost) e
 	return nil
 }
 
-func (sd *SqlDatabase) insertData(query string, args ...any) error {
-	tx, err := sd.Client.Begin()
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
-
-	_, err = tx.Exec(query, args...)
-
-	return err
-}
-
 func (sd *SqlDatabase) AddFollow(follow *model.Follow) error {
 	query := `
 		INSERT INTO escalateservice.follows (
@@ -558,4 +539,50 @@ func (sd *SqlDatabase) GetFollow(follower, followee string) (*model.Follow, erro
 	}
 
 	return &follow, nil
+}
+
+func (sd *SqlDatabase) RemoveFollow(follow *model.Follow) error {
+	query := `
+		DELETE FROM escalateservice.follows
+		WHERE follower = $1 AND followee = $2
+	`
+
+	result, err := sd.Client.Exec(query, follow.Follower, follow.Followee)
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to remove follow, %s -> %s", follow.Follower, follow.Followee)
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to get rows affected for superlikePost removal, %s -> %s", follow.Follower, follow.Followee)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		log.Warn().Msgf("No follow found to remove, %s -> %s", follow.Follower, follow.Followee)
+		return nil // No error, but no rows were affected
+	}
+
+	log.Info().Msgf("Follow removed successfully, %s -> %s", follow.Follower, follow.Followee)
+	return nil
+}
+
+func (sd *SqlDatabase) insertData(query string, args ...any) error {
+	tx, err := sd.Client.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	_, err = tx.Exec(query, args...)
+
+	return err
 }

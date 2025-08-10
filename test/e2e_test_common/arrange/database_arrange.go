@@ -60,3 +60,14 @@ func AddSuperlikePost(t *testing.T, superlikePost *model.SuperlikePost) {
 
 	integration_test_assert.AssertSuperlikePostExists(t, database, superlikePost)
 }
+
+func AddFollow(t *testing.T, follow *model.Follow) {
+	database := CreateTestDatabase()
+
+	err := database.Client.AddFollow(follow)
+	if err != nil {
+		panic(err)
+	}
+
+	integration_test_assert.AssertFollowExists(t, database, follow)
+}

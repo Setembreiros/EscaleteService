@@ -146,3 +146,15 @@ func AddReviewBatch(t *testing.T, reviews []*model.Review) {
 		integration_test_assert.AssertReviewExists(t, database, review.ReviewId, review)
 	}
 }
+
+func AddFollow(t *testing.T, follow *model.Follow) {
+	database := CreateTestDatabase()
+	defer database.Client.Close()
+
+	err := database.Client.AddFollow(follow)
+	if err != nil {
+		panic(err)
+	}
+
+	integration_test_assert.AssertFollowExists(t, database, follow)
+}

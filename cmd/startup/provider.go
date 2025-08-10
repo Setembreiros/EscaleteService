@@ -12,6 +12,7 @@ import (
 	"escalateservice/internal/handler/post_created"
 	"escalateservice/internal/handler/review_created"
 	"escalateservice/internal/handler/superlike_post"
+	"escalateservice/internal/handler/unfollow_user"
 	"escalateservice/internal/handler/unlike_post"
 	"escalateservice/internal/handler/unsuperlike_post"
 	"escalateservice/internal/handler/user_created"
@@ -90,6 +91,10 @@ func (p *Provider) ProvideSubscriptions(sqlClient *sql_db.SqlDatabase) *[]bus.Ev
 		{
 			EventType: event.UserAFollowedUserBEventName,
 			Handler:   follow_user.NewUserAFollowedUserBEventHandler(follow_user.NewFollowService(follow_user.NewFollowRepository(database.NewDatabase(sqlClient)))),
+		},
+		{
+			EventType: event.UserAUnfollowedUserBEventName,
+			Handler:   unfollow_user.NewUserAUnfollowedUserBEventHandler(unfollow_user.NewUnfollowService(unfollow_user.NewUnfollowRepository(database.NewDatabase(sqlClient)))),
 		},
 	}
 }

@@ -35,6 +35,7 @@ type DatabaseClient interface {
 	RemoveSuperlikePost(superlikePost *model.SuperlikePost) error
 	AddFollow(follow *model.Follow) error
 	GetFollow(follower, followee string) (*model.Follow, error)
+	RemoveFollow(follow *model.Follow) error
 }
 
 func NewDatabase(client DatabaseClient) *Database {

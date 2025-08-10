@@ -185,3 +185,22 @@ func AssertFollowExists(t *testing.T, expectedFollow *model.Follow) {
 	assert.Equal(t, expectedFollow.Follower, follow.Follower)
 	assert.Equal(t, expectedFollow.Followee, follow.Followee)
 }
+
+func AssertFollowDoesNotExist(t *testing.T, expectedFollow *model.Follow) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		follow, err := db.Client.GetSuperlikePost(expectedFollow.Follower, expectedFollow.Followee)
+		if err != nil || follow != nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Nil(t, follow)
+			return
+		}
+	}
+	follow, err := db.Client.GetSuperlikePost(expectedFollow.Follower, expectedFollow.Followee)
+	assert.Nil(t, err)
+	assert.Nil(t, follow)
+}
