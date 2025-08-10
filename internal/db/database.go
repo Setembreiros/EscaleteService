@@ -33,6 +33,8 @@ type DatabaseClient interface {
 	BatchAddSuperlikePosts(superlikePosts []*model.SuperlikePost) error
 	GetSuperlikePost(username, postId string) (*model.SuperlikePost, error)
 	RemoveSuperlikePost(superlikePost *model.SuperlikePost) error
+	AddFollow(follow *model.Follow) error
+	GetFollow(follower, followee string) (*model.Follow, error)
 }
 
 func NewDatabase(client DatabaseClient) *Database {

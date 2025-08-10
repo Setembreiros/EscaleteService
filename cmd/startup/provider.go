@@ -7,6 +7,7 @@ import (
 	"escalateservice/internal/api"
 	"escalateservice/internal/bus"
 	database "escalateservice/internal/db"
+	"escalateservice/internal/handler/follow_user"
 	"escalateservice/internal/handler/like_post"
 	"escalateservice/internal/handler/post_created"
 	"escalateservice/internal/handler/review_created"
@@ -85,6 +86,10 @@ func (p *Provider) ProvideSubscriptions(sqlClient *sql_db.SqlDatabase) *[]bus.Ev
 		{
 			EventType: event.UserUnsuperlikedPostEventName,
 			Handler:   unsuperlike_post.NewUserUnsuperlikedPostEventHandler(unsuperlike_post.NewUnsuperlikePostService(unsuperlike_post.NewUnsuperlikePostRepository(database.NewDatabase(sqlClient)))),
+		},
+		{
+			EventType: event.UserAFollowedUserBEventName,
+			Handler:   follow_user.NewUserAFollowedUserBEventHandler(follow_user.NewFollowService(follow_user.NewFollowRepository(database.NewDatabase(sqlClient)))),
 		},
 	}
 }

@@ -34,6 +34,20 @@ func (m *MockDatabaseClient) EXPECT() *MockDatabaseClientMockRecorder {
 	return m.recorder
 }
 
+// AddFollow mocks base method.
+func (m *MockDatabaseClient) AddFollow(follow *model.Follow) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddFollow", follow)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddFollow indicates an expected call of AddFollow.
+func (mr *MockDatabaseClientMockRecorder) AddFollow(follow interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFollow", reflect.TypeOf((*MockDatabaseClient)(nil).AddFollow), follow)
+}
+
 // AddLikePost mocks base method.
 func (m *MockDatabaseClient) AddLikePost(likePost *model.LikePost) error {
 	m.ctrl.T.Helper()
@@ -210,6 +224,21 @@ func (m *MockDatabaseClient) Close() {
 func (mr *MockDatabaseClientMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockDatabaseClient)(nil).Close))
+}
+
+// GetFollow mocks base method.
+func (m *MockDatabaseClient) GetFollow(follower, followee string) (*model.Follow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFollow", follower, followee)
+	ret0, _ := ret[0].(*model.Follow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFollow indicates an expected call of GetFollow.
+func (mr *MockDatabaseClientMockRecorder) GetFollow(follower, followee interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFollow", reflect.TypeOf((*MockDatabaseClient)(nil).GetFollow), follower, followee)
 }
 
 // GetLikePost mocks base method.

@@ -515,3 +515,47 @@ func (sd *SqlDatabase) insertData(query string, args ...any) error {
 
 	return err
 }
+
+func (sd *SqlDatabase) AddFollow(follow *model.Follow) error {
+	query := `
+		INSERT INTO escalateservice.follows (
+    		follower,
+    		followee
+    	) VALUES ($1, $2)
+	`
+	err := sd.insertData(query, follow.Follower, follow.Followee)
+
+	if err != nil {
+		log.Error().Stack().Err(err).Msgf("Failed to create follow, %s -> %s", follow.Follower, follow.Followee)
+		return err
+	}
+
+	log.Info().Msgf("Follow created successfully, %s -> %s", follow.Follower, follow.Followee)
+	return nil
+}
+
+func (sd *SqlDatabase) GetFollow(follower, followee string) (*model.Follow, error) {
+	query := `
+		SELECT 
+    		follower,
+    		followee
+		FROM escalateservice.follows
+		WHERE follower = $1 AND followee = $2
+	`
+
+	var follow model.Follow
+	err := sd.Client.QueryRow(query, follower, followee).Scan(
+		&follow.Follower,
+		&follow.Followee,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // No likePost found with the given username and postId
+		}
+		log.Error().Stack().Err(err).Msgf("Get follow failed, %s a-> %s", follower, followee)
+		return nil, err
+	}
+
+	return &follow, nil
+}
