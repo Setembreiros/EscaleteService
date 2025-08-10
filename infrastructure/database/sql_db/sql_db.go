@@ -117,13 +117,14 @@ func (sd *SqlDatabase) BatchAddUsers(users []*model.User) error {
 func (sd *SqlDatabase) GetUser(username string) (*model.User, error) {
 	query := `
 		SELECT 
-			username
+			username,
+			score
 		FROM escalateservice.users
 		WHERE username = $1
 	`
 
 	var user model.User
-	err := sd.Client.QueryRow(query, username).Scan(&user.Username)
+	err := sd.Client.QueryRow(query, username).Scan(&user.Username, &user.Score)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -140,10 +141,11 @@ func (sd *SqlDatabase) AddPost(post *model.Post) error {
 	query := `
 		INSERT INTO escalateservice.posts (
 			post_id,
-        	username
-    	) VALUES ($1, $2)
+        	username,
+			score
+    	) VALUES ($1, $2, $3)
 	`
-	err := sd.insertData(query, post.PostId, post.Username)
+	err := sd.insertData(query, post.PostId, post.Username, post.Score)
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to create post, postId: %s", post.PostId)
@@ -512,6 +514,37 @@ func (sd *SqlDatabase) AddFollow(follow *model.Follow) error {
 	}
 
 	log.Info().Msgf("Follow created successfully, %s -> %s", follow.Follower, follow.Followee)
+	return nil
+}
+
+func (sd *SqlDatabase) BatchAddFollows(follows []*model.Follow) error {
+	if len(follows) == 0 {
+		log.Warn().Msg("No follows to batch add")
+		return nil
+	}
+
+	query := `
+		INSERT INTO escalateservice.follows (
+			follower,
+			followee
+		) VALUES %s
+	`
+	values := make([]string, len(follows))
+	for i, follow := range follows {
+		if follow == nil {
+			log.Error().Stack().Msg("Follow is null")
+			return fmt.Errorf("follow is null")
+		}
+		values[i] = fmt.Sprintf("('%s', '%s')", follow.Follower, follow.Followee)
+	}
+	query = fmt.Sprintf(query, strings.Join(values, ","))
+	_, err := sd.Client.Exec(query)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("Failed to batch add follows")
+		return err
+	}
+
+	log.Info().Msgf("Batch added %d follows successfully", len(follows))
 	return nil
 }
 

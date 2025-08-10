@@ -31,12 +31,11 @@ func TestUpdatePostScoresProcedure_Load(t *testing.T) {
 		users := CreateRandomUsersInBatches(t, 1000, 1000)
 		posts := CreateRandomPostsInBatches(t, users, 3000, 3000)
 		var wg sync.WaitGroup
-		wg.Add(3)
+		wg.Add(4)
 		go func() {
 			defer wg.Done()
 			CreateRandomLikePostsInBatches(t, posts, users, 100000, 10000) // 100k likes
 		}()
-
 		go func() {
 			defer wg.Done()
 			CreateRandomSuperlikePostsInBatches(t, posts, users, 10000, 10000) // 10k superlikes
@@ -45,13 +44,17 @@ func TestUpdatePostScoresProcedure_Load(t *testing.T) {
 			defer wg.Done()
 			CreateRandomReviewsInBatches(t, posts, users, 5000, 5000) // 5k reviews
 		}()
+		go func() {
+			defer wg.Done()
+			CreateRandomFollowsInBatches(t, users, 10000, 10000) // 5k reviews
+		}()
 		wg.Wait()
 		elapsedArrange := time.Since(startArrange)
 		elapsedArrangeSeconds := float64(elapsedArrange.Milliseconds()) / 1000.0
 		t.Logf("Arrange completado en %fs", elapsedArrangeSeconds)
 	})
 
-	t.Run("ExecutarProcedemento", func(t *testing.T) {
+	t.Run("ExecutarProcedemento update_post_scores", func(t *testing.T) {
 		start := time.Now()
 
 		// Executar varias veces para medir rendemento consistente
@@ -60,13 +63,30 @@ func TestUpdatePostScoresProcedure_Load(t *testing.T) {
 			integration_test_action.CallProcedureUpdatePostScores(t, db)
 			elapsedAlone := time.Since(startAlone)
 			elapsedAloneSeconds := float64(elapsedAlone.Milliseconds()) / 1000.0
-			t.Logf("Execución %d completada en %fs", i+1, elapsedAloneSeconds)
+			t.Logf("Execución update_post_scores %d completada en %fs", i+1, elapsedAloneSeconds)
 		}
 
 		elapsed := time.Since(start)
 		elapsedSeconds := float64(elapsed.Milliseconds()) / 1000.0
 		avgTime := elapsedSeconds / 3
 		t.Logf("update_post_scores tardou %f en executarse", avgTime)
+	})
+	t.Run("ExecutarProcedemento update_user_scores", func(t *testing.T) {
+		start := time.Now()
+
+		// Executar varias veces para medir rendemento consistente
+		for i := 0; i < 3; i++ {
+			startAlone := time.Now()
+			integration_test_action.CallProcedureUpdateUserScores(t, db)
+			elapsedAlone := time.Since(startAlone)
+			elapsedAloneSeconds := float64(elapsedAlone.Milliseconds()) / 1000.0
+			t.Logf("Execución update_user_scores %d completada en %fs", i+1, elapsedAloneSeconds)
+		}
+
+		elapsed := time.Since(start)
+		elapsedSeconds := float64(elapsed.Milliseconds()) / 1000.0
+		avgTime := elapsedSeconds / 3
+		t.Logf("update_user_scores tardou %f en executarse", avgTime)
 	})
 }
 
@@ -202,5 +222,38 @@ func CreateRandomReviewsInBatches(t *testing.T, posts []*model.Post, users []*mo
 			}
 		}
 		integration_test_arrange.AddReviewBatch(t, batchReview)
+	}
+}
+
+func CreateRandomFollowsInBatches(t *testing.T, users []*model.User, total, batchSize int) {
+	var followCache = make(map[string]bool)
+	for i := 0; i < total; i += batchSize {
+		currentBatch := batchSize
+		if i+batchSize > total {
+			currentBatch = total - i
+		}
+		batchFollow := make([]*model.Follow, currentBatch)
+		for j := 0; j < currentBatch; j++ {
+			for {
+				followerId := rand.Intn(len(users))
+				followeeId := rand.Intn(len(users))
+				if followerId == followeeId {
+					continue
+				}
+				follower := users[followerId]
+				followee := users[followeeId]
+				followCacheKey := follower.Username + "_" + followee.Username
+				if _, exists := followCache[followCacheKey]; exists {
+					continue // Skip if this review already exists
+				}
+				followCache[followCacheKey] = true
+				batchFollow[j] = &model.Follow{
+					Follower: follower.Username,
+					Followee: followee.Username, // Rating between 1 and 5
+				}
+				break // Exit the loop once a unique review is created
+			}
+		}
+		integration_test_arrange.AddFollowBatch(t, batchFollow)
 	}
 }

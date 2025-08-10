@@ -20,6 +20,87 @@ func tearDown() {
 	db.Client.Clean()
 }
 
+func TestUpdateUserScoresProcedure_OneUser(t *testing.T) {
+	setUp(t)
+	defer tearDown()
+	user1 := &model.User{Username: "user1"}
+	integration_test_arrange.AddUser(t, user1)
+	user2 := &model.User{Username: "user2"}
+	integration_test_arrange.AddUser(t, user2)
+	post := &model.Post{PostId: "post1", Username: user1.Username, Score: 225}
+	integration_test_arrange.AddPost(t, post)
+	follow := &model.Follow{Follower: user2.Username, Followee: user1.Username}
+	integration_test_arrange.AddFollow(t, follow)
+
+	integration_test_action.CallProcedureUpdateUserScores(t, db)
+
+	// Score esperado:
+	// BaseScore: 800 = 800
+	// PostScore: 225 = 225
+	// Follows: 1 * 10 = 10
+	// Total esperado = 800 + 10 + 225 = 1035 expectedScore := 1035
+	expectedScore := 1035.0
+	integration_test_assert.AssertUserScore(t, db, user1.Username, expectedScore)
+}
+
+func TestUpdateUserScoresProcedure_MultipleUser(t *testing.T) {
+	setUp(t)
+	defer tearDown()
+	user1 := &model.User{Username: "user1"}
+	integration_test_arrange.AddUser(t, user1)
+	user2 := &model.User{Username: "user2"}
+	integration_test_arrange.AddUser(t, user2)
+	user3 := &model.User{Username: "user3"}
+	integration_test_arrange.AddUser(t, user3)
+	// User 1 -> follows: 1, post scores: 105, 18
+	// User 2 -> follows: 0, post scores: 101
+	// User 3 -> follows: 2, post scores: 25, 155, 666, 777
+	post1 := &model.Post{PostId: "post1", Username: user1.Username, Score: 105}
+	integration_test_arrange.AddPost(t, post1)
+	post2 := &model.Post{PostId: "post2", Username: user3.Username, Score: 25}
+	integration_test_arrange.AddPost(t, post2)
+	post3 := &model.Post{PostId: "post3", Username: user3.Username, Score: 155}
+	integration_test_arrange.AddPost(t, post3)
+	post4 := &model.Post{PostId: "post4", Username: user1.Username, Score: 18}
+	integration_test_arrange.AddPost(t, post4)
+	post5 := &model.Post{PostId: "post5", Username: user2.Username, Score: 101}
+	integration_test_arrange.AddPost(t, post5)
+	post6 := &model.Post{PostId: "post6", Username: user3.Username, Score: 666}
+	integration_test_arrange.AddPost(t, post6)
+	post7 := &model.Post{PostId: "post7", Username: user3.Username, Score: 777}
+	integration_test_arrange.AddPost(t, post7)
+	follow1 := &model.Follow{Follower: user2.Username, Followee: user1.Username}
+	integration_test_arrange.AddFollow(t, follow1)
+	follow2 := &model.Follow{Follower: user2.Username, Followee: user3.Username}
+	integration_test_arrange.AddFollow(t, follow2)
+	follow3 := &model.Follow{Follower: user1.Username, Followee: user3.Username}
+	integration_test_arrange.AddFollow(t, follow3)
+
+	integration_test_action.CallProcedureUpdateUserScores(t, db)
+
+	// Score esperado:
+	// BaseScore: 800 = 800
+	// PostScore: 105 + 18 / 2 = 123 /2 = 61.5
+	// Follows: 1 * 10 = 10
+	// Total esperado = 800 + 10 + 61.5 = 871.5 expectedScore := 871.5
+	expectedScore := 871.5
+	integration_test_assert.AssertUserScore(t, db, user1.Username, expectedScore)
+	// Score esperado:
+	// BaseScore: 800 = 800
+	// PostScore: 101 = 101
+	// Follows: 0 * 10 = 0
+	// Total esperado = 800 + 0 + 101 = 901 expectedScore := 901
+	expectedScore = 901.0
+	integration_test_assert.AssertUserScore(t, db, user2.Username, expectedScore)
+	// Score esperado:
+	// BaseScore: 800 = 800
+	// PostScore: 25 + 155 + 666 + 777 / 4 = 1623 /4 = 405.75
+	// Follows: 2 * 10 = 20
+	// Total esperado = 800 + 20 + 405.75 = 1225.75 expectedScore := 1225.75
+	expectedScore = 1225.75
+	integration_test_assert.AssertUserScore(t, db, user3.Username, expectedScore)
+}
+
 func TestUpdatePostScoresProcedure_review0(t *testing.T) {
 	setUp(t)
 	defer tearDown()

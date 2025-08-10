@@ -118,6 +118,20 @@ func (mr *MockDatabaseClientMockRecorder) AddUser(user interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddUser", reflect.TypeOf((*MockDatabaseClient)(nil).AddUser), user)
 }
 
+// BatchAddFollows mocks base method.
+func (m *MockDatabaseClient) BatchAddFollows(follow []*model.Follow) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BatchAddFollows", follow)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BatchAddFollows indicates an expected call of BatchAddFollows.
+func (mr *MockDatabaseClientMockRecorder) BatchAddFollows(follow interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BatchAddFollows", reflect.TypeOf((*MockDatabaseClient)(nil).BatchAddFollows), follow)
+}
+
 // BatchAddLikePosts mocks base method.
 func (m *MockDatabaseClient) BatchAddLikePosts(likePosts []*model.LikePost) error {
 	m.ctrl.T.Helper()

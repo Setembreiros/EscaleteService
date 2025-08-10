@@ -44,7 +44,7 @@ BEGIN
 
     -- Actualizar puntuación final na táboa de posts
     UPDATE escalateservice.posts p
-    SET score1 =
+    SET score =
         COALESCE(t.total_likes, 0) +
         COALESCE(t.total_superlikes * 10, 0) +
         COALESCE(t.total_revisiones, 0)
@@ -58,5 +58,5 @@ $$;
 
 -- +goose Down
 -- +goose StatementBegin
-DROP FUNCTION IF EXISTS calcular_puntuacions_posts();
+DROP FUNCTION IF EXISTS escalateservice.update_post_scores();
 -- +goose StatementEnd

@@ -15,6 +15,13 @@ func CreateTestDatabase() *database.Database {
 	return database.NewDatabase(sqlDb)
 }
 
+func CallProcedureUpdateUserScores(t *testing.T, db *database.Database) {
+	err := db.Client.CallProcedure("update_user_scores")
+	if err != nil {
+		panic(err)
+	}
+}
+
 func CallProcedureUpdatePostScores(t *testing.T, db *database.Database) {
 	err := db.Client.CallProcedure("update_post_scores")
 	if err != nil {

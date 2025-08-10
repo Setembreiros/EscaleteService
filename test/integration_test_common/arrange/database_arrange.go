@@ -158,3 +158,17 @@ func AddFollow(t *testing.T, follow *model.Follow) {
 
 	integration_test_assert.AssertFollowExists(t, database, follow)
 }
+
+func AddFollowBatch(t *testing.T, follows []*model.Follow) {
+	database := CreateTestDatabase()
+	defer database.Client.Close()
+
+	err := database.Client.BatchAddFollows(follows)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, follow := range follows {
+		integration_test_assert.AssertFollowExists(t, database, follow)
+	}
+}

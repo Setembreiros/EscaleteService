@@ -69,6 +69,13 @@ func AssertFollowDoesNotExist(t *testing.T, db *database.Database, expectedFollo
 	assert.Nil(t, follow, "Follow should not exist")
 }
 
+func AssertUserScore(t *testing.T, db *database.Database, username string, expectedScore float64) {
+	user, err := db.Client.GetUser(username)
+	assert.Nil(t, err, "Error should be nil when checking user score")
+	assert.NotNil(t, user, "User should not be nil")
+	assert.Equal(t, expectedScore, user.Score, "User score does not match expected value")
+}
+
 func AssertPostScore(t *testing.T, db *database.Database, postId string, expectedScore int) {
 	post, err := db.Client.GetPost(postId)
 	assert.Nil(t, err, "Error should be nil when checking post score")

@@ -34,6 +34,7 @@ type DatabaseClient interface {
 	GetSuperlikePost(username, postId string) (*model.SuperlikePost, error)
 	RemoveSuperlikePost(superlikePost *model.SuperlikePost) error
 	AddFollow(follow *model.Follow) error
+	BatchAddFollows(follow []*model.Follow) error
 	GetFollow(follower, followee string) (*model.Follow, error)
 	RemoveFollow(follow *model.Follow) error
 }
