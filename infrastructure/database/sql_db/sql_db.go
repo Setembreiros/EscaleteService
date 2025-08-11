@@ -76,10 +76,11 @@ func (sd *SqlDatabase) CallProcedure(name string) error {
 func (sd *SqlDatabase) AddUser(user *model.User) error {
 	query := `
 		INSERT INTO escalateservice.users (
-        	username
-    	) VALUES ($1)
+        	username,
+			score
+    	) VALUES ($1, $2)
 	`
-	err := sd.insertData(query, user.Username)
+	err := sd.insertData(query, user.Username, user.Score)
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to create user, username: %s", user.Username)
@@ -142,10 +143,11 @@ func (sd *SqlDatabase) AddPost(post *model.Post) error {
 		INSERT INTO escalateservice.posts (
 			post_id,
         	username,
+			reaction_score,
 			score
-    	) VALUES ($1, $2, $3)
+    	) VALUES ($1, $2, $3, $4)
 	`
-	err := sd.insertData(query, post.PostId, post.Username, post.Score)
+	err := sd.insertData(query, post.PostId, post.Username, post.ReactionScore, post.Score)
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to create post, postId: %s", post.PostId)
@@ -187,6 +189,7 @@ func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
 		SELECT 
 			post_id,
         	username,
+			reaction_score,
 			score
 		FROM escalateservice.posts
 		WHERE post_id = $1
@@ -196,6 +199,7 @@ func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
 	err := sd.Client.QueryRow(query, postId).Scan(
 		&post.PostId,
 		&post.Username,
+		&post.ReactionScore,
 		&post.Score,
 	)
 

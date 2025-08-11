@@ -9,8 +9,15 @@ BEGIN
         post_id VARCHAR(255) PRIMARY KEY,
         total_likes INT DEFAULT 0,
         total_superlikes INT DEFAULT 0,
-        total_revisiones INT DEFAULT 0
+        total_revisiones INT DEFAULT 0,
+        user_score DECIMAL DEFAULT 0.0
     ) ON COMMIT DROP;
+
+    -- Obter user score
+    INSERT INTO puntuacions_temp (post_id, user_score)
+    SELECT post_id, u.score
+    FROM escalateservice.posts p join escalateservice.users u on p.username = u.username
+    ON CONFLICT (post_id) DO UPDATE SET user_score = EXCLUDED.user_score;
 
     -- Calcular likes normais (👍 = 1 punto)
     INSERT INTO puntuacions_temp (post_id, total_likes)
@@ -44,10 +51,17 @@ BEGIN
 
     -- Actualizar puntuación final na táboa de posts
     UPDATE escalateservice.posts p
-    SET score =
+    SET reaction_score =
         COALESCE(t.total_likes, 0) +
         COALESCE(t.total_superlikes * 10, 0) +
         COALESCE(t.total_revisiones, 0)
+    FROM puntuacions_temp t
+    WHERE p.post_id = t.post_id;
+
+    UPDATE escalateservice.posts p
+    SET score =
+        COALESCE(t.user_score, 0) +
+        COALESCE(p.reaction_score, 0)
     FROM puntuacions_temp t
     WHERE p.post_id = t.post_id;
 

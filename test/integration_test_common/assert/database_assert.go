@@ -76,7 +76,14 @@ func AssertUserScore(t *testing.T, db *database.Database, username string, expec
 	assert.Equal(t, expectedScore, user.Score, "User score does not match expected value")
 }
 
-func AssertPostScore(t *testing.T, db *database.Database, postId string, expectedScore int) {
+func AssertPostReactionScore(t *testing.T, db *database.Database, postId string, expectedScore float64) {
+	post, err := db.Client.GetPost(postId)
+	assert.Nil(t, err, "Error should be nil when checking post reaction score")
+	assert.NotNil(t, post, "Post should not be nil")
+	assert.Equal(t, expectedScore, post.ReactionScore, "Post reaction score does not match expected value")
+}
+
+func AssertPostScore(t *testing.T, db *database.Database, postId string, expectedScore float64) {
 	post, err := db.Client.GetPost(postId)
 	assert.Nil(t, err, "Error should be nil when checking post score")
 	assert.NotNil(t, post, "Post should not be nil")

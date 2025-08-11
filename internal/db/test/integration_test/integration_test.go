@@ -137,8 +137,8 @@ func TestUpdatePostScoresProcedure_review0(t *testing.T) {
 	// Superlikes: 1 * 10 = 10
 	// Review rating 0: -200
 	// Total esperado = 2 + 10 - 200 = -188	expectedScore := -188
-	expectedScore := -188
-	integration_test_assert.AssertPostScore(t, db, post.PostId, expectedScore)
+	expectedReactionScore := -188.0
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, expectedReactionScore)
 }
 
 func TestUpdatePostScoresProcedure_review1(t *testing.T) {
@@ -177,8 +177,8 @@ func TestUpdatePostScoresProcedure_review1(t *testing.T) {
 	// Superlikes: 1 * 10 = 10
 	// Review rating 1: -100
 	// Total esperado = 2 + 10 - 100 = -88	expectedScore := -88
-	expectedScore := -88
-	integration_test_assert.AssertPostScore(t, db, post.PostId, expectedScore)
+	expectedReactionScore := -88.0
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, expectedReactionScore)
 }
 
 func TestUpdatePostScoresProcedure_review2(t *testing.T) {
@@ -217,8 +217,8 @@ func TestUpdatePostScoresProcedure_review2(t *testing.T) {
 	// Superlikes: 1 * 10 = 10
 	// Review rating 2: 0
 	// Total esperado = 2 + 10 + 0 = 12	expectedScore := 12
-	expectedScore := 12
-	integration_test_assert.AssertPostScore(t, db, post.PostId, expectedScore)
+	expectedReactionScore := 12.0
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, expectedReactionScore)
 }
 
 func TestUpdatePostScoresProcedure_review3(t *testing.T) {
@@ -257,8 +257,8 @@ func TestUpdatePostScoresProcedure_review3(t *testing.T) {
 	// Superlikes: 1 * 10 = 10
 	// Review rating 3: 100
 	// Total esperado = 2 + 10 + 100 = 112	expectedScore := 112
-	expectedScore := 112
-	integration_test_assert.AssertPostScore(t, db, post.PostId, expectedScore)
+	expectedReactionScore := 112.0
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, expectedReactionScore)
 }
 
 func TestUpdatePostScoresProcedure_review4(t *testing.T) {
@@ -297,8 +297,8 @@ func TestUpdatePostScoresProcedure_review4(t *testing.T) {
 	// Superlikes: 1 * 10 = 10
 	// Review rating 4: 200
 	// Total esperado = 2 + 10 + 200 = 212	expectedScore := 212
-	expectedScore := 212
-	integration_test_assert.AssertPostScore(t, db, post.PostId, expectedScore)
+	expectedReactionScore := 212.0
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, expectedReactionScore)
 }
 
 func TestUpdatePostScoresProcedure_review5(t *testing.T) {
@@ -337,16 +337,16 @@ func TestUpdatePostScoresProcedure_review5(t *testing.T) {
 	// Superlikes: 1 * 10 = 10
 	// Review rating 5: 300
 	// Total esperado = 2 + 10 + 300 = 312	expectedScore := 312
-	expectedScore := 312
-	integration_test_assert.AssertPostScore(t, db, post.PostId, expectedScore)
+	expectedReactionScore := 312.0
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, expectedReactionScore)
 }
 
 func TestUpdatePostScoresProcedure_MultiplePost(t *testing.T) {
 	setUp(t)
 	defer tearDown()
-	user1 := &model.User{Username: "user1"}
+	user1 := &model.User{Username: "user1", Score: 1056.5}
 	integration_test_arrange.AddUser(t, user1)
-	user2 := &model.User{Username: "user2"}
+	user2 := &model.User{Username: "user2", Score: 720}
 	integration_test_arrange.AddUser(t, user2)
 	post1 := &model.Post{PostId: "post1", Username: user1.Username}
 	integration_test_arrange.AddPost(t, post1)
@@ -354,9 +354,9 @@ func TestUpdatePostScoresProcedure_MultiplePost(t *testing.T) {
 	integration_test_arrange.AddPost(t, post2)
 	post3 := &model.Post{PostId: "post3", Username: user1.Username}
 	integration_test_arrange.AddPost(t, post3)
-	// Post 1 -> likes: 2, superlikes: 1, review rating: 5
-	// Post 2 -> likes: 0, superlikes: 2, review rating: 1, 2
-	// Post 3 -> likes: 1, superlikes: 0, review rating: 5, 1
+	// Post 1 -> likes: 2, superlikes: 1, review rating: 5, userScore: 1056.5
+	// Post 2 -> likes: 0, superlikes: 2, review rating: 1, 2, userScore: 720
+	// Post 3 -> likes: 1, superlikes: 0, review rating: 5, 1, userScore: 1056.5
 	integration_test_arrange.AddLikePost(t, &model.LikePost{
 		PostId:   post1.PostId,
 		Username: user1.Username,
@@ -415,24 +415,33 @@ func TestUpdatePostScoresProcedure_MultiplePost(t *testing.T) {
 	integration_test_action.CallProcedureUpdatePostScores(t, db)
 
 	// Score esperado post1:
+	// User score: 1056.5 = 1056.5
 	// Likes: 2 * 1 = 2
 	// Superlikes: 1 * 10 = 10
 	// Review rating 5: 300
-	// Total esperado = 2 + 10 + 300 = 312	expectedScore := 312
-	expectedScore := 312
+	// Total esperado = 1056.5 + 2 + 10 + 300 = 1056.5 + 312 expectedScore := 1368.5
+	expectedReactionScore := 312.0
+	expectedScore := 1368.5
+	integration_test_assert.AssertPostReactionScore(t, db, post1.PostId, expectedReactionScore)
 	integration_test_assert.AssertPostScore(t, db, post1.PostId, expectedScore)
 	// Score esperado post2:
+	// User score: 712 = 712
 	// Likes: 0 * 1 = 0
 	// Superlikes: 2 * 10 = 20
 	// Review rating 1, 2: -100 + 0 = -100
-	// Total esperado = 2 + 10 - 100 = -80	expectedScore := -80
-	expectedScore = -80
+	// Total esperado = 720 + 20 - 100 = 720 - 80 expectedScore := 640
+	expectedReactionScore = -80
+	expectedScore = 640
+	integration_test_assert.AssertPostReactionScore(t, db, post2.PostId, expectedReactionScore)
 	integration_test_assert.AssertPostScore(t, db, post2.PostId, expectedScore)
 	// Score esperado post3:
+	// User score: 1056.5 = 1056.5
 	// Likes: 1 * 1 = 1
 	// Superlikes: 0 * 10 = 0
 	// Review rating 5, 1: 300 - 100: 200
-	// Total esperado = 1 + 0 + 200 = 201
-	expectedScore = 201
+	// Total esperado = 1056.5 + 1 + 0 + 200 = 1056.5 + 201 expectedScore := 1257.5
+	expectedReactionScore = 201
+	expectedScore = 1257.5
+	integration_test_assert.AssertPostReactionScore(t, db, post3.PostId, expectedReactionScore)
 	integration_test_assert.AssertPostScore(t, db, post3.PostId, expectedScore)
 }
