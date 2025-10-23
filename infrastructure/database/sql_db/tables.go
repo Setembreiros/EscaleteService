@@ -1,3 +1,10 @@
 package sql_db
 
-var tables = []string{}
+var tables = []string{
+	"users",
+	"posts",
+	"reviews",
+	"likePosts",
+	"superlikePosts",
+	"follows",
+}

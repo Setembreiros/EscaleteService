@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Go App",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd",
+      "env": {
+        "ENVIRONMENT": "development",         // <- Customize as needed
+        "CONN_STR": "postgres://postgres:artis@localhost:5432/artis?search_path=public&sslmode=disable"   // <- Set your DB or service connection string
+      },
+      "args": []
+    }
+  ]
+}

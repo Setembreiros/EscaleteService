@@ -7,6 +7,7 @@
 # executar o comando test. Chegaría con ".PHONY: test" neste caso
 # pero engado todos por se acaso.
 .PHONY: update build run run-dev run-dev-windows test
+SHELL := bash
 
 DEV-ENVIRONMENT=development
 PROD-ENVIRONMENT=production
@@ -16,12 +17,24 @@ PROD-CONN_STR=postgres://postgres:artis12345@artis.cb8i8sw2y7l0.eu-west-3.rds.am
 update:
 	go mod tidy
 build: update
-	go build -o ./deployment/${PROD-ENVIRONMENT}/escalateService cmd/main.go cmd/startup.go
+	go build -o ./deployment/${PROD-ENVIRONMENT}/escalateService cmd/main.go
 run:
-	export CONN_STR="${PROD-CONN_STR}" && export ENVIRONMENT="${PROD-ENVIRONMENT}" && go run ./cmd/main.go ./cmd/startup.go
+	export CONN_STR="${PROD-CONN_STR}" && export ENVIRONMENT="${PROD-ENVIRONMENT}" && go run ./cmd/main.go
 run-dev:
-	export CONN_STR="${DEV-CONN_STR}" && export ENVIRONMENT="${DEV-ENVIRONMENT}" && go run ./cmd/main.go ./cmd/startup.go
+	export CONN_STR="${DEV-CONN_STR}" && export ENVIRONMENT="${DEV-ENVIRONMENT}" && go run ./cmd/main.go
 run-dev-windows: 
-	set CONN_STR="${DEV-CONN_STR}" && set ENVIRONMENT=${DEV-ENVIRONMENT} && go run ./cmd/main.go ./cmd/startup.go
-test:
-	go generate -v ./internal/... && go test ./internal/...
+	set CONN_STR="${DEV-CONN_STR}" && set ENVIRONMENT=${DEV-ENVIRONMENT} && go run ./cmd/main.go
+test: unit-test integration-test e2e-test
+unit-test:
+	go generate -v ./internal/... && go test -v ./internal/.../unit_test/...
+integration-test:
+	go test -p 1 -v ./internal/.../integration_test/...
+e2e-test:
+	go test -p 1 -v ./internal/.../e2e_test/...
+load-test:
+	go test -p 1 -timeout 960s -v ./internal/.../load_test/...
+
+
+
+
+

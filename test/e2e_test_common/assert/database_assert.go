@@ -1,0 +1,225 @@
+package e2e_test_assert
+
+import (
+	"escalateservice/cmd/startup"
+	database "escalateservice/internal/db"
+	model "escalateservice/internal/model/domain"
+	"escalateservice/test/e2e_test_common"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func ProvideDatabase(t *testing.T) *database.Database {
+	provider := startup.NewProvider(e2e_test_common.Env, e2e_test_common.ConnStr)
+	sqlDb, err := provider.ProvideDb()
+	if err != nil {
+		t.Fatalf("Failed to provide database: %v", err)
+	}
+	return database.NewDatabase(sqlDb)
+}
+
+func AssertUserExists(t *testing.T, username string, expectedUser *model.User) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		user, err := db.Client.GetUser(username)
+		if err == nil && user == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedUser.Username, user.Username)
+			return
+		}
+	}
+	user, err := db.Client.GetUser(username)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedUser.Username, user.Username)
+}
+
+func AssertPostExists(t *testing.T, postId string, expectedPost *model.Post) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		post, err := db.Client.GetPost(postId)
+		if err == nil && post == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedPost.PostId, post.PostId)
+			assert.Equal(t, expectedPost.Username, post.Username)
+			return
+		}
+	}
+	post, err := db.Client.GetPost(postId)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedPost.PostId, post.PostId)
+	assert.Equal(t, expectedPost.Username, post.Username)
+}
+
+func AssertPostReactionScore(t *testing.T, postId string, expectedScore int) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		post, err := db.Client.GetPost(postId)
+		if err == nil && post == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedScore, post.ReactionScore)
+			return
+		}
+	}
+	post, err := db.Client.GetPost(postId)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedScore, post.ReactionScore)
+}
+
+func AssertReviewExists(t *testing.T, reviewId uint64, expectedReview *model.Review) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		review, err := db.Client.GetReview(reviewId)
+		if err == nil && review == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedReview.ReviewId, review.ReviewId)
+			assert.Equal(t, expectedReview.PostId, review.PostId)
+			assert.Equal(t, expectedReview.Reviewer, review.Reviewer)
+			assert.Equal(t, expectedReview.Rating, review.Rating)
+			return
+		}
+	}
+	review, err := db.Client.GetReview(reviewId)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedReview.ReviewId, review.ReviewId)
+	assert.Equal(t, expectedReview.PostId, review.PostId)
+	assert.Equal(t, expectedReview.Reviewer, review.Reviewer)
+	assert.Equal(t, expectedReview.Rating, review.Rating)
+}
+
+func AssertLikePostExists(t *testing.T, expectedLikePost *model.LikePost) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		likePost, err := db.Client.GetLikePost(expectedLikePost.Username, expectedLikePost.PostId)
+		if err == nil && likePost == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedLikePost.Username, likePost.Username)
+			assert.Equal(t, expectedLikePost.PostId, likePost.PostId)
+			return
+		}
+	}
+	likePost, err := db.Client.GetLikePost(expectedLikePost.Username, expectedLikePost.PostId)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedLikePost.Username, likePost.Username)
+	assert.Equal(t, expectedLikePost.PostId, likePost.PostId)
+}
+
+func AssertLikePostDoesNotExist(t *testing.T, likePost *model.LikePost) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		likePost, err := db.Client.GetLikePost(likePost.Username, likePost.PostId)
+		if err != nil || likePost != nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Nil(t, likePost)
+			return
+		}
+	}
+	likePost, err := db.Client.GetLikePost(likePost.Username, likePost.PostId)
+	assert.Nil(t, err)
+	assert.Nil(t, likePost)
+}
+
+func AssertSuperlikePostExists(t *testing.T, expectedSuperlikePost *model.SuperlikePost) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		superlikePost, err := db.Client.GetSuperlikePost(expectedSuperlikePost.Username, expectedSuperlikePost.PostId)
+		if err == nil && superlikePost == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedSuperlikePost.Username, superlikePost.Username)
+			assert.Equal(t, expectedSuperlikePost.PostId, superlikePost.PostId)
+			return
+		}
+	}
+	superlikePost, err := db.Client.GetLikePost(expectedSuperlikePost.Username, expectedSuperlikePost.PostId)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedSuperlikePost.Username, superlikePost.Username)
+	assert.Equal(t, expectedSuperlikePost.PostId, superlikePost.PostId)
+}
+
+func AssertSuperlikePostDoesNotExist(t *testing.T, superlikePost *model.SuperlikePost) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		superlikePost, err := db.Client.GetSuperlikePost(superlikePost.Username, superlikePost.PostId)
+		if err != nil || superlikePost != nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Nil(t, superlikePost)
+			return
+		}
+	}
+	superlikePost, err := db.Client.GetSuperlikePost(superlikePost.Username, superlikePost.PostId)
+	assert.Nil(t, err)
+	assert.Nil(t, superlikePost)
+}
+
+func AssertFollowExists(t *testing.T, expectedFollow *model.Follow) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		follow, err := db.Client.GetFollow(expectedFollow.Follower, expectedFollow.Followee)
+		if err == nil && follow == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedFollow.Follower, follow.Follower)
+			assert.Equal(t, expectedFollow.Followee, follow.Followee)
+			return
+		}
+	}
+	follow, err := db.Client.GetFollow(expectedFollow.Follower, expectedFollow.Followee)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedFollow.Follower, follow.Follower)
+	assert.Equal(t, expectedFollow.Followee, follow.Followee)
+}
+
+func AssertFollowDoesNotExist(t *testing.T, expectedFollow *model.Follow) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		follow, err := db.Client.GetSuperlikePost(expectedFollow.Follower, expectedFollow.Followee)
+		if err != nil || follow != nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Nil(t, follow)
+			return
+		}
+	}
+	follow, err := db.Client.GetSuperlikePost(expectedFollow.Follower, expectedFollow.Followee)
+	assert.Nil(t, err)
+	assert.Nil(t, follow)
+}
