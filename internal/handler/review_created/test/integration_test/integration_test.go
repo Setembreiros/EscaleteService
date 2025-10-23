@@ -30,20 +30,42 @@ func tearDown() {
 func TestCreateReview_WhenDatabaseReturnsSuccess(t *testing.T) {
 	setUp(t)
 	defer tearDown()
-	user := &model.User{
-		Username: "username1",
-	}
-	integration_test_arrange.AddUser(t, user)
+	user1 := createUser(t, "username1")
+	user2 := createUser(t, "username2")
 	post := &model.Post{
 		PostId:   "post1",
-		Username: "username1",
+		Username: user1.Username,
 	}
 	integration_test_arrange.AddPost(t, post)
+	data1, expectedReview1 := createReview(user1.Username, 5)
+	data2, expectedReview2 := createReview(user2.Username, 1)
+
+	handler.Handle(data1)
+	handler.Handle(data2)
+
+	integration_test_assert.AssertReviewExists(t, db, expectedReview1.ReviewId, expectedReview1)
+	integration_test_assert.AssertReviewExists(t, db, expectedReview2.ReviewId, expectedReview2)
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, model.GetScore(fmt.Sprintf("review%dstar", expectedReview1.Rating))+model.GetScore(fmt.Sprintf("review%dstar", expectedReview2.Rating)))
+}
+
+func createUser(t *testing.T, username string) *model.User {
+	user := &model.User{
+		Username: username,
+	}
+	integration_test_arrange.AddUser(t, user)
+
+	return user
+}
+
+var lastReviewID uint64 = 0
+
+func createReview(reviewer string, rating int) ([]byte, *model.Review) {
+	lastReviewID = lastReviewID + 1
 	review := &event.ReviewWasCreatedEvent{
-		ReviewId: 1,
+		ReviewId: lastReviewID,
 		PostId:   "post1",
-		Username: "username1",
-		Rating:   5,
+		Username: reviewer,
+		Rating:   rating,
 	}
 	data, _ := test_common.SerializeData(review)
 	expectedReview := &model.Review{
@@ -53,8 +75,5 @@ func TestCreateReview_WhenDatabaseReturnsSuccess(t *testing.T) {
 		Rating:   review.Rating,
 	}
 
-	handler.Handle(data)
-
-	integration_test_assert.AssertReviewExists(t, db, review.ReviewId, expectedReview)
-	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, model.GetScore(fmt.Sprintf("review%dstar", review.Rating)))
+	return data, expectedReview
 }
