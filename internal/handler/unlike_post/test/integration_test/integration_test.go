@@ -52,4 +52,5 @@ func TestCreateUnlikePost_WhenDatabaseReturnsSuccess(t *testing.T) {
 	handler.Handle(data)
 
 	integration_test_assert.AssertLikePostDoesNotExist(t, db, likePost)
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, 0)
 }

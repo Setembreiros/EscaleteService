@@ -41,6 +41,7 @@ func AddPost(t *testing.T, post *model.Post) {
 
 func AddLikePost(t *testing.T, likePost *model.LikePost) {
 	database := CreateTestDatabase()
+	post, _ := database.Client.GetPost(likePost.PostId)
 
 	err := database.Client.AddLikePost(likePost)
 	if err != nil {
@@ -48,10 +49,12 @@ func AddLikePost(t *testing.T, likePost *model.LikePost) {
 	}
 
 	integration_test_assert.AssertLikePostExists(t, database, likePost)
+	integration_test_assert.AssertPostReactionScore(t, database, likePost.PostId, post.ReactionScore+model.GetScore("like"))
 }
 
 func AddSuperlikePost(t *testing.T, superlikePost *model.SuperlikePost) {
 	database := CreateTestDatabase()
+	post, _ := database.Client.GetPost(superlikePost.PostId)
 
 	err := database.Client.AddSuperlikePost(superlikePost)
 	if err != nil {
@@ -59,6 +62,7 @@ func AddSuperlikePost(t *testing.T, superlikePost *model.SuperlikePost) {
 	}
 
 	integration_test_assert.AssertSuperlikePostExists(t, database, superlikePost)
+	integration_test_assert.AssertPostReactionScore(t, database, superlikePost.PostId, post.ReactionScore+model.GetScore("superlike"))
 }
 
 func AddFollow(t *testing.T, follow *model.Follow) {

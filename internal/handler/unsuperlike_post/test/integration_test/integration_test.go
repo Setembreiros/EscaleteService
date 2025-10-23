@@ -52,4 +52,5 @@ func TestCreateUnsuperlikePost_WhenDatabaseReturnsSuccess(t *testing.T) {
 	handler.Handle(data)
 
 	integration_test_assert.AssertSuperlikePostDoesNotExist(t, db, superlikePost)
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, 0)
 }

@@ -51,4 +51,5 @@ func TestCreateLikePost_WhenDatabaseReturnsSuccess(t *testing.T) {
 	handler.Handle(data)
 
 	integration_test_assert.AssertLikePostExists(t, db, expectedLikePost)
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, model.GetScore("like"))
 }

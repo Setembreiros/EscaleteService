@@ -76,11 +76,10 @@ func (sd *SqlDatabase) CallProcedure(name string) error {
 func (sd *SqlDatabase) AddUser(user *model.User) error {
 	query := `
 		INSERT INTO escalateservice.users (
-        	username,
-			score
-    	) VALUES ($1, $2)
+        	username
+    	) VALUES ($1)
 	`
-	err := sd.insertData(query, user.Username, user.Score)
+	err := sd.insertData(query, user.Username)
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to create user, username: %s", user.Username)
@@ -118,14 +117,13 @@ func (sd *SqlDatabase) BatchAddUsers(users []*model.User) error {
 func (sd *SqlDatabase) GetUser(username string) (*model.User, error) {
 	query := `
 		SELECT 
-			username,
-			score
+			username
 		FROM escalateservice.users
 		WHERE username = $1
 	`
 
 	var user model.User
-	err := sd.Client.QueryRow(query, username).Scan(&user.Username, &user.Score)
+	err := sd.Client.QueryRow(query, username).Scan(&user.Username)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -143,11 +141,10 @@ func (sd *SqlDatabase) AddPost(post *model.Post) error {
 		INSERT INTO escalateservice.posts (
 			post_id,
         	username,
-			reaction_score,
-			score
-    	) VALUES ($1, $2, $3, $4)
+			reaction_score
+    	) VALUES ($1, $2, $3)
 	`
-	err := sd.insertData(query, post.PostId, post.Username, post.ReactionScore, post.Score)
+	err := sd.insertData(query, post.PostId, post.Username, post.ReactionScore)
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to create post, postId: %s", post.PostId)
@@ -189,8 +186,7 @@ func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
 		SELECT 
 			post_id,
         	username,
-			reaction_score,
-			score
+			reaction_score
 		FROM escalateservice.posts
 		WHERE post_id = $1
 	`
@@ -200,7 +196,6 @@ func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
 		&post.PostId,
 		&post.Username,
 		&post.ReactionScore,
-		&post.Score,
 	)
 
 	if err != nil {
@@ -216,14 +211,19 @@ func (sd *SqlDatabase) GetPost(postId string) (*model.Post, error) {
 
 func (sd *SqlDatabase) AddReview(review *model.Review) error {
 	query := `
-		INSERT INTO escalateservice.reviews (
-			review_id,
-			post_id,
-        	reviewer,
-			rating
-    	) VALUES ($1, $2, $3, $4)
+		WITH insert_review AS (
+			INSERT INTO escalateservice.reviews (
+				review_id,
+				post_id,
+        		reviewer,
+				rating
+    		) VALUES ($1, $2, $3, $4)
+        )
+		UPDATE escalateservice.posts
+		SET reaction_score = reaction_score + $5
+		WHERE post_id = $2;
 	`
-	err := sd.insertData(query, review.ReviewId, review.PostId, review.Reviewer, review.Rating)
+	err := sd.insertData(query, review.ReviewId, review.PostId, review.Reviewer, review.Rating, model.GetScore(fmt.Sprintf("review%dstar", review.Rating)))
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to create review, reviewId: %d", review.ReviewId)
@@ -264,6 +264,23 @@ func (sd *SqlDatabase) BatchAddReviews(reviews []*model.Review) error {
 		return err
 	}
 
+	updateQuery := `
+        UPDATE escalateservice.posts 
+        SET reaction_score = reaction_score + $1 
+        WHERE post_id = $2;
+    `
+
+	for _, review := range reviews {
+		if review != nil {
+			reviewScore := model.GetScore(fmt.Sprintf("review%dstar", review.Rating))
+			_, err := sd.Client.Exec(updateQuery, reviewScore, review.PostId)
+			if err != nil {
+				log.Error().Stack().Err(err).Msgf("Failed to update score for post %s", review.PostId)
+				return err
+			}
+		}
+	}
+
 	log.Info().Msgf("Batch added %d reviews successfully", len(reviews))
 	return nil
 }
@@ -300,12 +317,16 @@ func (sd *SqlDatabase) GetReview(reviewId uint64) (*model.Review, error) {
 
 func (sd *SqlDatabase) AddLikePost(likePost *model.LikePost) error {
 	query := `
-		INSERT INTO escalateservice.likePosts (
-			username,
-			post_id
-    	) VALUES ($1, $2)
+ 		WITH insert_like AS (
+            INSERT INTO escalateservice.likePosts (username, post_id) 
+            VALUES ($1, $2)
+            RETURNING post_id
+        )
+        UPDATE escalateservice.posts 
+        SET reaction_score = reaction_score + $3
+        WHERE post_id = $2
 	`
-	err := sd.insertData(query, likePost.Username, likePost.PostId)
+	err := sd.insertData(query, likePost.Username, likePost.PostId, model.GetScore("like"))
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to create likePost, username: %s -> post %s", likePost.Username, likePost.PostId)
@@ -344,6 +365,24 @@ func (sd *SqlDatabase) BatchAddLikePosts(likePosts []*model.LikePost) error {
 		return err
 	}
 
+	updateQuery := `
+        UPDATE escalateservice.posts 
+        SET reaction_score = reaction_score + $1 
+        WHERE post_id = $2;
+    `
+
+	likeScore := model.GetScore("like")
+
+	for _, likePost := range likePosts {
+		if likePost != nil {
+			_, err := sd.Client.Exec(updateQuery, likeScore, likePost.PostId)
+			if err != nil {
+				log.Error().Stack().Err(err).Msgf("Failed to update score for post %s", likePost.PostId)
+				return err
+			}
+		}
+	}
+
 	log.Info().Msgf("Batch added %d likePosts successfully", len(likePosts))
 	return nil
 }
@@ -376,11 +415,16 @@ func (sd *SqlDatabase) GetLikePost(username, postId string) (*model.LikePost, er
 
 func (sd *SqlDatabase) RemoveLikePost(likePost *model.LikePost) error {
 	query := `
-		DELETE FROM escalateservice.likePosts
-		WHERE username = $1 AND post_id = $2
+		WITH remove_like AS (
+            DELETE FROM escalateservice.likePosts
+			WHERE username = $1 AND post_id = $2
+        )
+        UPDATE escalateservice.posts 
+        SET reaction_score = reaction_score - $3
+        WHERE post_id = $2
 	`
 
-	result, err := sd.Client.Exec(query, likePost.Username, likePost.PostId)
+	result, err := sd.Client.Exec(query, likePost.Username, likePost.PostId, model.GetScore("like"))
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to remove likePost, username: %s -> post %s", likePost.Username, likePost.PostId)
 		return err
@@ -403,12 +447,17 @@ func (sd *SqlDatabase) RemoveLikePost(likePost *model.LikePost) error {
 
 func (sd *SqlDatabase) AddSuperlikePost(superlikePost *model.SuperlikePost) error {
 	query := `
-		INSERT INTO escalateservice.superlikePosts (
+		WITH insert_superlike AS (
+            INSERT INTO escalateservice.superlikePosts (
 			username,
 			post_id
     	) VALUES ($1, $2)
+        )
+		UPDATE escalateservice.posts
+		SET reaction_score = reaction_score + $3
+		WHERE post_id = $2;
 	`
-	err := sd.insertData(query, superlikePost.Username, superlikePost.PostId)
+	err := sd.insertData(query, superlikePost.Username, superlikePost.PostId, model.GetScore("superlike"))
 
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to create superlikePost, username: %s -> post %s", superlikePost.Username, superlikePost.PostId)
@@ -446,6 +495,24 @@ func (sd *SqlDatabase) BatchAddSuperlikePosts(superlikePosts []*model.SuperlikeP
 		return err
 	}
 
+	updateQuery := `
+        UPDATE escalateservice.posts 
+        SET reaction_score = reaction_score + $1 
+        WHERE post_id = $2;
+    `
+
+	superlikeScore := model.GetScore("superlike")
+
+	for _, superlikePost := range superlikePosts {
+		if superlikePost != nil {
+			_, err := sd.Client.Exec(updateQuery, superlikeScore, superlikePost.PostId)
+			if err != nil {
+				log.Error().Stack().Err(err).Msgf("Failed to update score for post %s", superlikePost.PostId)
+				return err
+			}
+		}
+	}
+
 	log.Info().Msgf("Batch added %d superlikePosts successfully", len(superlikePosts))
 	return nil
 }
@@ -478,11 +545,16 @@ func (sd *SqlDatabase) GetSuperlikePost(username, postId string) (*model.Superli
 
 func (sd *SqlDatabase) RemoveSuperlikePost(superlikePost *model.SuperlikePost) error {
 	query := `
-		DELETE FROM escalateservice.superlikePosts
-		WHERE username = $1 AND post_id = $2
+		WITH remove_superlike AS (
+			DELETE FROM escalateservice.superlikePosts
+			WHERE username = $1 AND post_id = $2
+        )
+		UPDATE escalateservice.posts
+		SET reaction_score = reaction_score - $3
+		WHERE post_id = $2;
 	`
 
-	result, err := sd.Client.Exec(query, superlikePost.Username, superlikePost.PostId)
+	result, err := sd.Client.Exec(query, superlikePost.Username, superlikePost.PostId, model.GetScore("superlike"))
 	if err != nil {
 		log.Error().Stack().Err(err).Msgf("Failed to remove superlikePost, username: %s -> post %s", superlikePost.Username, superlikePost.PostId)
 		return err

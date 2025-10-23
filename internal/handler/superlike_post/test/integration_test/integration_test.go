@@ -51,4 +51,5 @@ func TestCreateSuperlikePost_WhenDatabaseReturnsSuccess(t *testing.T) {
 	handler.Handle(data)
 
 	integration_test_assert.AssertSuperlikePostExists(t, db, expectedSuperlikePost)
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, model.GetScore("superlike"))
 }

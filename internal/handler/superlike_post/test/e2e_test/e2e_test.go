@@ -41,5 +41,6 @@ func TestSuperlikePost(t *testing.T) {
 	e2e_test_action.PublishEvent(t, event.UserSuperlikedPostEventName, userSuperlikedPostEvent)
 
 	e2e_test_assert.AssertSuperlikePostExists(t, expectedSuperlikePost)
+	e2e_test_assert.AssertPostReactionScore(t, expectedPost.PostId, model.GetScore("superlike"))
 	log.Info().Msg("SuperlikePost E2E test Finished Successfully")
 }

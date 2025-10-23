@@ -41,5 +41,6 @@ func TestLikePost(t *testing.T) {
 	e2e_test_action.PublishEvent(t, event.UserLikedPostEventName, userLikedPostEvent)
 
 	e2e_test_assert.AssertLikePostExists(t, expectedLikePost)
+	e2e_test_assert.AssertPostReactionScore(t, expectedPost.PostId, model.GetScore("like"))
 	log.Info().Msg("LikePost E2E test Finished Successfully")
 }

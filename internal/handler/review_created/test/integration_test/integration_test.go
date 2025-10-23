@@ -8,6 +8,7 @@ import (
 	integration_test_arrange "escalateservice/test/integration_test_common/arrange"
 	integration_test_assert "escalateservice/test/integration_test_common/assert"
 	"escalateservice/test/test_common"
+	"fmt"
 	"testing"
 )
 
@@ -55,4 +56,5 @@ func TestCreateReview_WhenDatabaseReturnsSuccess(t *testing.T) {
 	handler.Handle(data)
 
 	integration_test_assert.AssertReviewExists(t, db, review.ReviewId, expectedReview)
+	integration_test_assert.AssertPostReactionScore(t, db, post.PostId, model.GetScore(fmt.Sprintf("review%dstar", review.Rating)))
 }

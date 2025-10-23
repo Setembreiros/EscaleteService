@@ -7,6 +7,7 @@ import (
 	e2e_test_action "escalateservice/test/e2e_test_common/action"
 	e2e_test_arrange "escalateservice/test/e2e_test_common/arrange"
 	e2e_test_assert "escalateservice/test/e2e_test_common/assert"
+	"fmt"
 	"testing"
 
 	"github.com/rs/zerolog/log"
@@ -45,5 +46,6 @@ func TestReviewCreated(t *testing.T) {
 	e2e_test_action.PublishEvent(t, event.ReviewWasCreatedEventName, reviewWasCreatedEvent)
 
 	e2e_test_assert.AssertReviewExists(t, reviewWasCreatedEvent.ReviewId, expectedReview)
+	e2e_test_assert.AssertPostReactionScore(t, expectedPost.PostId, model.GetScore(fmt.Sprintf("review%dstar", reviewWasCreatedEvent.Rating)))
 	log.Info().Msg("ReviewCreated E2E test Finished Successfully")
 }

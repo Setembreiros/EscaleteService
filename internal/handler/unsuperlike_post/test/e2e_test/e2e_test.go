@@ -42,5 +42,6 @@ func TestUnsuperlikePost(t *testing.T) {
 	e2e_test_action.PublishEvent(t, event.UserUnsuperlikedPostEventName, userUnsuperlikedPostEvent)
 
 	e2e_test_assert.AssertSuperlikePostDoesNotExist(t, superlikePost)
+	e2e_test_assert.AssertPostReactionScore(t, post.PostId, 0)
 	log.Info().Msg("UnsuperlikePost E2E test Finished Successfully")
 }

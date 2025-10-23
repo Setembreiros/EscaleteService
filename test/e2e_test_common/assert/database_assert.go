@@ -60,6 +60,25 @@ func AssertPostExists(t *testing.T, postId string, expectedPost *model.Post) {
 	assert.Equal(t, expectedPost.Username, post.Username)
 }
 
+func AssertPostReactionScore(t *testing.T, postId string, expectedScore int) {
+	db := ProvideDatabase(t)
+	const maxRetries = 20
+	const delay = 1000 * time.Millisecond
+	for i := 0; i < maxRetries; i++ {
+		post, err := db.Client.GetPost(postId)
+		if err == nil && post == nil {
+			time.Sleep(delay)
+		} else {
+			assert.Nil(t, err)
+			assert.Equal(t, expectedScore, post.ReactionScore)
+			return
+		}
+	}
+	post, err := db.Client.GetPost(postId)
+	assert.Nil(t, err)
+	assert.Equal(t, expectedScore, post.ReactionScore)
+}
+
 func AssertReviewExists(t *testing.T, reviewId uint64, expectedReview *model.Review) {
 	db := ProvideDatabase(t)
 	const maxRetries = 20

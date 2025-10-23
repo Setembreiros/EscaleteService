@@ -5,7 +5,6 @@ CREATE TABLE escalateservice.posts (
     post_id VARCHAR(255) PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     reaction_score DECIMAL DEFAULT 0,
-    score DECIMAL DEFAULT 0,
     CONSTRAINT fk_username FOREIGN KEY (username)
         REFERENCES escalateservice.users (username)
         ON DELETE CASCADE

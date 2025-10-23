@@ -42,5 +42,6 @@ func TestUnlikePost(t *testing.T) {
 	e2e_test_action.PublishEvent(t, event.UserUnlikedPostEventName, userUnlikedPostEvent)
 
 	e2e_test_assert.AssertLikePostDoesNotExist(t, likePost)
+	e2e_test_assert.AssertPostReactionScore(t, post.PostId, 0)
 	log.Info().Msg("UnlikePost E2E test Finished Successfully")
 }
